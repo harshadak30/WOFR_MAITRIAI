@@ -169,7 +169,6 @@ const AssignUser1: React.FC<AssignUserProps> = ({ user, onClose }) => {
           }
         );
         
-        console.log("Roles response:", response.data);
 
         if (response.data.success && response.data.data.roles) {
           setAllRoles(response.data.data.roles);
@@ -208,7 +207,6 @@ const AssignUser1: React.FC<AssignUserProps> = ({ user, onClose }) => {
         role_id: selectedRoleIds.map(id => parseInt(id)),
       };
 
-      console.log("Payload being sent:", payload);
 
       await axios.post("api/v1/assign-tenant-user-screen", payload, {
         headers: {
@@ -305,36 +303,6 @@ const AssignUser1: React.FC<AssignUserProps> = ({ user, onClose }) => {
               placeholder="Choose roles to assign"
             />
           </div>
-
-          {/* Selected Roles Details */}
-          {/* {selectedRoles.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="font-medium text-gray-900">Selected Roles Details</h3>
-              {selectedRoles.map((role) => (
-                <div key={role.role_id} className="p-4 border rounded-lg bg-blue-50">
-                  <div className="text-sm text-gray-600 space-y-2">
-                    <div>
-                      <strong>Role:</strong> {role.role_name}
-                    </div>
-                    <div>
-                      <strong>Description:</strong> {role.description}
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                      <div>
-                        <strong>Status:</strong> {role.status}
-                      </div>
-                      <div>
-                        <strong>Created by:</strong> {role.created_by}
-                      </div>
-                      <div>
-                        <strong>Created:</strong> {new Date(role.created_at).toLocaleDateString()}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )} */}
         </div>
 
         {/* Footer */}

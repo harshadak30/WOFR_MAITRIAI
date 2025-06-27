@@ -12,6 +12,7 @@ interface LeaseReviewSubmitProps {
   formData: LeaseFormData;
   onPrevious: () => void;
   onNext: () => void;
+  isSaving?: boolean;
 }
 
 const LeaseSummary: React.FC<LeaseReviewSubmitProps> = ({
@@ -19,9 +20,10 @@ const LeaseSummary: React.FC<LeaseReviewSubmitProps> = ({
   onPrevious,
   onNext,
 }) => {
-  type TabNames = keyof typeof tabData;
+  
+  type TabType = typeof tabs[number];
 
-const [activeTab, setActiveTab] = useState<TabNames>("Cash_Flow"); 
+const [activeTab, setActiveTab] = useState<TabType>("Cash_Flow"); 
   // const [activeTab, setActiveTab] = useState("Cash_Flow");
 
   const tabs = [
@@ -638,7 +640,7 @@ const [activeTab, setActiveTab] = useState<TabNames>("Cash_Flow");
 
 
 
-  const currentData = tabData[activeTab];
+  const currentData = tabData[activeTab as keyof typeof tabData];
 
   const handleNext = () => {
     onNext();

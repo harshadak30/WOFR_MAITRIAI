@@ -4,7 +4,6 @@ import { RiMenu3Line, RiCloseLine } from "react-icons/ri";
 import { Link, NavLink } from "react-router-dom";
 import backgroundImages from "../../../public/background";
 
-
 const openCalendly = () => {
   window.Calendly?.initPopupWidget({
     url: "https://calendly.com/maitriai-sales/business-meet",
@@ -127,21 +126,6 @@ const Header = () => {
                 Testimonials
               </li>
             </ul>
-            <div className="space-y-2 sm:space-y-4 w-full px-4 sm:px-6 pb-2 text-sm sm:text-base">
-              <Link to={"/login"} className="block">
-                <button className="w-full text-white border border-white px-3 sm:px-4 py-1.5 sm:py-2 rounded">
-                  Sign In
-                </button>
-              </Link>
-              <Link to="/book-demo" className="block">
-                <button
-                  className="w-full bg-[#008F98] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded"
-                  onClick={openCalendly}
-                >
-                  Book a Demo
-                </button>
-              </Link>
-            </div>
           </div>
         )}
       </nav>

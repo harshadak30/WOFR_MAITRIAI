@@ -101,7 +101,7 @@ const ModalHeader = memo(({ email }: { email: string }) => (
 
 interface OTPFormProps {
   otpDigits: string[];
-  otpInputRefs: React.RefObject<HTMLInputElement>[];
+  otpInputRefs: React.RefObject<HTMLInputElement | null>[];
   handleOtpChange: (index: number, value: string) => void;
   handleOtpKeyDown: (index: number, e: React.KeyboardEvent<HTMLInputElement>) => void;
   handleSubmit: (e: React.FormEvent) => void;

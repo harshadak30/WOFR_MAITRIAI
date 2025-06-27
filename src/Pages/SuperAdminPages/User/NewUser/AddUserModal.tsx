@@ -106,7 +106,6 @@ const AddUserModal: React.FC<AddMultipleUsersModalProps> = ({
         }
       );
 
-      console.log("Users created successfully:", response.data);
       onClose();
       window.location.reload();
     } catch (error) {

@@ -155,7 +155,7 @@ export const useRegister = (): UseRegisterReturn => {
     }
   };
 
-  const onSubmit = (data: RegistrationFormData) => {
+  const onSubmit = () => {
     if (!isEmailVerified) {
       displayNotification("warning", "Please verify your email first");
       return;

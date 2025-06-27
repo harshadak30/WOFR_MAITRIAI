@@ -1,3 +1,4 @@
+import React from "react";
 import { AlertCircle } from "lucide-react";
 import { LeaseFormData } from "../../../../types";
 
@@ -44,7 +45,9 @@ const LeaseReviewSubmit: React.FC<LeaseReviewSubmitProps> = ({
     const deptSet = new Set<string>();
     Object.values(formData.entityDepartmentPercentages).forEach(
       (entityDepts) => {
-        Object.keys(entityDepts).forEach((dept) => deptSet.add(dept));
+        if (entityDepts && typeof entityDepts === "object") {
+          Object.keys(entityDepts).forEach((dept) => deptSet.add(dept));
+        }
       }
     );
 
@@ -59,12 +62,12 @@ const LeaseReviewSubmit: React.FC<LeaseReviewSubmitProps> = ({
     ? formData.entityMaster
     : formData.entityMaster
     ? [formData.entityMaster]
-    : [];
+    : ([] as string[]);
   const selectedLessors = Array.isArray(formData.leaserMaster)
     ? formData.leaserMaster
     : formData.leaserMaster
     ? [formData.leaserMaster]
-    : [];
+    : ([] as string[]);
 
   // Updated validation logic: if cashflow exists, only check basic required fields
   // If no cashflow, check all required fields
@@ -151,9 +154,12 @@ const LeaseReviewSubmit: React.FC<LeaseReviewSubmitProps> = ({
     formData.securityDeposits && formData.securityDeposits.length > 0;
 
   // Calculate overall entity grand total
-  const getOverallEntityGrandTotal = () => {
+  const getOverallEntityGrandTotal = (): number => {
     if (!formData.overallEntityPercentages) return 0;
-    return Object.values(formData.overallEntityPercentages).reduce((sum, val) => sum + val, 0);
+    return Object.values(formData.overallEntityPercentages).reduce(
+      (sum: number, val: any) => sum + (Number(val) || 0),
+      0
+    );
   };
 
   return (
@@ -332,29 +338,29 @@ const LeaseReviewSubmit: React.FC<LeaseReviewSubmitProps> = ({
               </div>
 
               {/* Single Entity Department Display */}
-              {!isMultiEntityMode &&
-                formData.department &&
-                formData.department.length > 0 && (
-                  <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-100 shadow-xs">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Department(s)
-                    </p>
-                    <div className="mt-1">
-                      <div className="flex flex-wrap gap-2">
-                        {formData.department.map(
-                          (dept: React.Key | null | undefined) => (
-                            <span
-                              key={dept}
-                              className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-                            >
-                              {dept}
-                            </span>
-                          )
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )}
+              {!isMultiEntityMode && 
+  formData.department && 
+  (Array.isArray(formData.department) ? formData.department.length > 0 : formData.department) && ( 
+    <div className="bg-white p-3 sm:p-4 rounded-lg border border-gray-100 shadow-xs"> 
+      <p className="text-xs font-medium text-gray-500 uppercase tracking-wider"> 
+        Department(s) 
+      </p> 
+      <div className="mt-1"> 
+        <div className="flex flex-wrap gap-2"> 
+          {(Array.isArray(formData.department) ? formData.department : [formData.department]).map( 
+            (dept: string, index: number) => ( 
+              <span 
+                key={dept || index} 
+                className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full" 
+              > 
+                {dept} 
+              </span> 
+            ) 
+          )} 
+        </div> 
+      </div> 
+    </div> 
+  )}
             </div>
           </section>
         )}
@@ -384,9 +390,9 @@ const LeaseReviewSubmit: React.FC<LeaseReviewSubmitProps> = ({
                     >
                       Entity
                     </th>
-                    {getUniqueDepartments().map((dept) => (
+                    {getUniqueDepartments().map((dept, index) => (
                       <th
-                        key={dept.value}
+                        key={dept.value || `dept-${index}`}
                         scope="col"
                         className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider min-w-[120px]"
                       >
@@ -405,11 +411,13 @@ const LeaseReviewSubmit: React.FC<LeaseReviewSubmitProps> = ({
                   {selectedEntities.map((entityId, entityIndex) => {
                     const entityPercentages =
                       formData.entityDepartmentPercentages?.[entityId] || {};
-                    const entityTotal = Object.values(entityPercentages).reduce(
-                      (sum, val) => sum + val,
-                      0
-                    );
-                    const overallPercentage = formData.overallEntityPercentages?.[entityId] || 0;
+                      const entityTotal = Object.values(entityPercentages).reduce(
+                        (sum: number, val: any) => sum + (Number(val) || 0),
+                        0
+                      );
+                      
+                    const overallPercentage =
+                      formData.overallEntityPercentages?.[entityId] || 0;
 
                     return (
                       <tr
@@ -424,11 +432,11 @@ const LeaseReviewSubmit: React.FC<LeaseReviewSubmitProps> = ({
                         <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 border-r bg-gray-100 border-gray-300">
                           {entityId}
                         </td>
-                        {getUniqueDepartments().map((dept) => {
+                        {getUniqueDepartments().map((dept, deptIndex) => {
                           const percentage = entityPercentages[dept.value];
                           return (
                             <td
-                              key={dept.value}
+                              key={dept.value || `dept-${deptIndex}`}
                               className="px-4 py-3 border-r border-gray-300 text-center text-sm"
                             >
                               {percentage !== undefined && percentage !== null
@@ -455,19 +463,23 @@ const LeaseReviewSubmit: React.FC<LeaseReviewSubmitProps> = ({
                 <tfoot className="bg-gray-50">
                   <tr>
                     <td className="px-4 py-3 text-sm font-semibold text-gray-900  bg-gray-200 text-center">
-                      Grand Total: <span
+                      Grand Total:{" "}
+                      <span
                         className={`text-sm font-semibold ${
                           Math.abs(getOverallEntityGrandTotal() - 100) < 0.01
                             ? "text-green-600"
                             : "text-red-600"
                         }`}
                       >
-                        {getOverallEntityGrandTotal().toFixed(2)}%
+                        {Number(getOverallEntityGrandTotal()).toFixed(2)}%{" "}
                       </span>
                     </td>
                     <td className="px-4 py-3 bg-gray-100"></td>
-                    {getUniqueDepartments().map((dept) => (
-                      <td key={`empty-dept-footer-${dept.value}`} className="px-4 py-3 bg-gray-100 "></td>
+                    {getUniqueDepartments().map((dept, index) => (
+                      <td
+                        key={`empty-dept-footer-${dept.value || index}`}
+                        className="px-4 py-3 bg-gray-100 "
+                      ></td>
                     ))}
                     <td className="px-4 py-3 text-center bg-gray-200">
                       <span
@@ -515,12 +527,13 @@ const LeaseReviewSubmit: React.FC<LeaseReviewSubmitProps> = ({
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {selectedLessors.map((lessorId, index) => {
-                    const percentage =
-                      formData.lessorPercentages?.[lessorId] || 0;
+                {selectedLessors.map((lessorId: string, index: number) => {
+  const percentage = Number(
+    (formData.lessorPercentages as any)?.[lessorId] || 0
+  );
                     return (
                       <tr
-                        key={lessorId}
+                        key={lessorId || `lessor-${index}`}
                         className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                       >
                         <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 border-r">
@@ -651,7 +664,7 @@ const LeaseReviewSubmit: React.FC<LeaseReviewSubmitProps> = ({
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {formData.cashflowEntries.map((entry, index) => (
+                  {formData.cashflowEntries?.map((entry, index) => (
                     <tr
                       key={entry.id}
                       className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
@@ -707,7 +720,7 @@ const LeaseReviewSubmit: React.FC<LeaseReviewSubmitProps> = ({
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {formData.rentRevisions.map((revision, index) => (
+                  {formData.rentRevisions?.map((revision, index) => (
                     <tr
                       key={revision.id}
                       className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
@@ -777,7 +790,7 @@ const LeaseReviewSubmit: React.FC<LeaseReviewSubmitProps> = ({
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {formData.securityDeposits.map((deposit, index) => (
+                  {formData.securityDeposits?.map((deposit, index) => (
                     <tr
                       key={deposit.id}
                       className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}

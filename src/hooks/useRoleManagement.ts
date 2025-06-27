@@ -527,7 +527,7 @@ export const useRoleManagement = (isReadOnly: boolean) => {
         headers: getAuthHeaders(),
       });
 
-console.log( data , "roles");
+
 
       const rolesData = data.data.roles.map((r: any) => ({
         ...r,
@@ -569,8 +569,6 @@ console.log( data , "roles");
           headers: { Accept: "application/json" },
         }
       );
-
-      console.log("fetchrolemapping", data);
       
       setRoleMappings(data.data.modules);
     } catch (error) {
@@ -809,8 +807,6 @@ console.log( data , "roles");
           "Content-Type": "application/json",
         },
       });
-// console.log(data , "roles");
-
       const newRole = data.data.role;
       
       setRoles((prev) => [
@@ -822,7 +818,7 @@ console.log( data , "roles");
       // Refresh the current page data
       fetchRoles(currentPage, itemsPerPage);
       
-      return true;
+      // return true;
     } catch (error: any) {
       console.error("Failed to create role:", error);
       setMessage(
@@ -830,7 +826,7 @@ console.log( data , "roles");
           error?.response?.data?.meta?.message || "Unknown error"
         }`
       );
-      return false;
+      // return false;
     } finally {
       setIsCreatingRole(false);
     }

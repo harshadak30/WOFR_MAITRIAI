@@ -69,12 +69,15 @@ const initialFormData: LeaseFormData = {
       // remark: "",
     }
   ],
-  entityMaster: "",
-  leaserMaster: "",
-  department: "",
+entityMaster: [] as string[],
+leaserMaster: [] as string[],
+department: [],
   entityDepartmentPercentages: undefined,
   lessorPercentages: undefined,
-  hasMultiEntityAllocation: false
+  hasMultiEntityAllocation: false,
+  overallEntityPercentages: undefined,
+  shortTermValue: "",
+  hasLessorAllocation: false
 };
 
 const CreateLease: React.FC = () => {
@@ -131,15 +134,17 @@ const CreateLease: React.FC = () => {
       // show it as step 2 in the indicator
       displayStep = 2;
     }
-
     const updatedFilteredSteps = filtered.map((step, index) => ({
       ...step,
-      id: index + 1, 
-      status: 
-        index + 1 === displayStep ? "current" : 
-        index + 1 < displayStep ? "complete" : 
-        "upcoming"
+      id: index + 1,
+      status:
+        index + 1 === displayStep
+          ? ("current" as const)
+          : index + 1 < displayStep
+            ? ("complete" as const)
+            : ("upcoming" as const),
     }));
+    
 
     return {
       filteredSteps: updatedFilteredSteps,

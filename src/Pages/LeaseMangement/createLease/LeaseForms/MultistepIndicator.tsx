@@ -9,6 +9,7 @@ interface Step {
 
 interface MultiStepIndicatorProps {
   steps: Step[];
+  currentStep: number;
 }
 
 const MultiStepIndicator: React.FC<MultiStepIndicatorProps> = ({ steps }) => {

@@ -26,7 +26,7 @@ const Login = () => {
     requestOtpCode,
     submitOtpVerification,
     resendOtpCode,
-    initiateGoogleAuth,
+    // initiateGoogleAuth,
     handleGoogleAuthCallback,
     openResetPasswordModal,
     closeResetModal,
@@ -59,11 +59,14 @@ const Login = () => {
   }, []);
 
   // Login method configuration from admin settings
-  const loginMethodFromAdmin = "both"; // Options: "password", "otp", "both"
-  const isPasswordAuthEnabled =
-    loginMethodFromAdmin === "password" || loginMethodFromAdmin === "both";
-  const isOtpAuthEnabled =
-    loginMethodFromAdmin === "otp" || loginMethodFromAdmin === "both";
+ // Explicitly declare the union type
+ const loginMethodFromAdmin: "password" | "otp" | "both" = "both" as "password" | "otp" | "both";
+
+ const isPasswordAuthEnabled =
+   loginMethodFromAdmin === "password" || loginMethodFromAdmin === "both";
+ 
+ const isOtpAuthEnabled =
+   loginMethodFromAdmin === "otp" || loginMethodFromAdmin === "both";
 
   // Handle Google OAuth callback
   useEffect(() => {

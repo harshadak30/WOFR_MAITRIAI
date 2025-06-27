@@ -1,19 +1,20 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown, X, AlertTriangle } from "lucide-react";
 import { LeaseFormLabels } from "../LeaseForms/LeaseFormLabel";
+import { LeaseFormData } from "../../../../types";
 
-interface LeaseFormData {
-  entityMaster: string | string[];
-  department: string[];
-  leaserMaster: string | string[];
-  hasMultiEntityAllocation?: boolean;
-  hasLessorAllocation?: boolean; // Added this field
-  // Add these new fields for storing allocation percentages
-  entityDepartmentPercentages?: Record<string, Record<string, number>>;
-  lessorPercentages?: Record<string, number>;
-  // NEW: Field for overall entity allocation percentages
-  overallEntityPercentages?: Record<string, number>;
-}
+// interface LeaseFormData {
+//   entityMaster: string | string[];
+//   department: string[];
+//   leaserMaster: string | string[];
+//   hasMultiEntityAllocation?: boolean;
+//   hasLessorAllocation?: boolean; // Added this field
+//   // Add these new fields for storing allocation percentages
+//   entityDepartmentPercentages?: Record<string, Record<string, number>>;
+//   lessorPercentages?: Record<string, number>;
+//   // NEW: Field for overall entity allocation percentages
+//   overallEntityPercentages?: Record<string, number>;
+// }
 
 interface LeaseBasicInfoProps {
   formData: LeaseFormData;
@@ -259,7 +260,7 @@ export const LessorDetails: React.FC<LeaseBasicInfoProps> = ({
     // Reset department selection when entity changes in single mode
     if (!isMultiEntityMode) {
       setSelectedDepartment("");
-      updateFormData({ department: [] });
+updateFormData({ department: [] as string[] });
     }
   };
 

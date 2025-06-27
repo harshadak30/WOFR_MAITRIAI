@@ -17,8 +17,7 @@ const Footer = () => {
             className="mb-3 sm:mb-4 h-10 xs:h-12 sm:h-14 md:h-16 w-auto"
           />
           <p className="text-xs xs:text-sm md:text-base text-gray-200 pr-2">
-            Lorem ipsum dolor sit amet consectetur. Dignissim augue egestas
-            pretium elit diam dignissim elementum.
+          Address: 1234 Main Street, Anytown 
           </p>
           <div className="flex gap-4 sm:gap-5 md:gap-6 mt-4 sm:mt-5 md:mt-6 text-xl sm:text-2xl">
             <FaInstagram className="hover:text-gray-300 cursor-pointer" />

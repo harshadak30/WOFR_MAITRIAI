@@ -96,7 +96,7 @@ const UserRolesPage: React.FC<UserManagementProps> = ({
             },
           }
         );
-        console.log("responseroles", response.data);
+  
 
         const roleMappings = response.data.data.user_roles;
         const roleSet = new Set<string>();

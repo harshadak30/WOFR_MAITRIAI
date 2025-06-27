@@ -158,7 +158,6 @@ const AddUserExcel: React.FC<CSVUploadModalProps> = ({
         }
       );
 
-      console.log("Users created successfully:", response.data);
       setUploadStep('result');
     } catch (error) {
       console.error("Error creating users:", error);

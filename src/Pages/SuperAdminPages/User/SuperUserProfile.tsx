@@ -179,9 +179,6 @@ const UserProfile = () => {
   const location = useLocation();
   const { user, assignmentData, assignmentDetails } = location.state || {};
 
-  console.log("Complete assignment data:", assignmentData);
-  console.log("Assignment details:", assignmentDetails);
-
   const [loading] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
