@@ -69,7 +69,7 @@ const CreateRoleForm: React.FC<CreateRoleFormProps> = ({
   
     if (!validate()) return;
   
-    try {
+    try {     
       await onSubmit(formData);
       setFormData({
         role_name: "",
@@ -77,7 +77,7 @@ const CreateRoleForm: React.FC<CreateRoleFormProps> = ({
         status: "active",
       });
       setErrors({});
-      onCancel(); 
+       onCancel(); 
     } catch (error) {
       console.error("Form submission error:", error);
     }

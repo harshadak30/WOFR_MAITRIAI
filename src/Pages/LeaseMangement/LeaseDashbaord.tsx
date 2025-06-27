@@ -49,11 +49,15 @@ const LeaseManagement: React.FC = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentLeases = leases.slice(indexOfFirstItem, indexOfLastItem);
   // Calculate status counts
-  const statusCounts = mockLeases.reduce<Record<string, number>>((acc, lease) => {
-    acc[lease.status] = (acc[lease.status] || 0) + 1;
+  const statusCounts = mockLeases.reduce((acc, lease) => {
+
+    acc[lease.status as string] = (acc[lease.status as string] || 0) + 1;
+
     acc["All Lease"] = mockLeases.length;
+
     return acc;
-  }, {});
+
+  }, {} as Record<string, number>);
 
   return (
     <div className=" bg-white">

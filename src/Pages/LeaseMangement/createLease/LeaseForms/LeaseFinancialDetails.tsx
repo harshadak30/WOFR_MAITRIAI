@@ -9,6 +9,7 @@ interface LeaseFinancialDetailsProps {
   updateFormData: (data: Partial<LeaseFormData>) => void;
   onPrevious: () => void;
   onNext: () => void;
+  isSaving?: boolean;
 }
 
 interface FormErrors {

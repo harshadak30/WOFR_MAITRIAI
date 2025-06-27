@@ -6,7 +6,7 @@ interface UseOtpReturn {
   otpDigits: string[];
   remainingTime: number;
   canResendOtp: boolean;
-  otpInputRefs: React.RefObject<HTMLInputElement>[];
+  otpInputRefs: React.RefObject<HTMLInputElement | null>[];
   handleOtpChange: (index: number, value: string) => void;
   handleOtpKeyDown: (
     index: number,

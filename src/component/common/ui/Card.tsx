@@ -6,16 +6,21 @@ const createCardComponent = <T extends keyof JSX.IntrinsicElements>(
   defaultClassName: string,
   displayName: string
 ) => {
-  const CardComponent = React.forwardRef<React.ElementRef<T>, React.ComponentPropsWithoutRef<T>>( 
-    ({ className, ...props }, ref) => (
-      <Component ref={ref} className={cn(defaultClassName, className)} {...props} />
-    )
+  type Props = React.ComponentPropsWithoutRef<T> & { className?: string };
+  const CardComponent = React.forwardRef<HTMLElement, Props>(
+    ({ className, ...props }, ref) =>
+      React.createElement(
+        Component,
+        {
+          ref,
+          className: cn(defaultClassName, className),
+          ...props,
+        }
+      )
   );
   CardComponent.displayName = displayName;
-
-  return CardComponent;
+  return CardComponent as unknown as React.FC<Props & React.RefAttributes<HTMLElement>>;
 };
-
 
 const Card = createCardComponent("div", "rounded-lg bg-card text-card-foreground shadow-sm", "Card");
 const CardHeader = createCardComponent("div", "flex flex-col space-y-1.5 p-6", "CardHeader");

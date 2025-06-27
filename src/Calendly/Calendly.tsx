@@ -2,6 +2,15 @@ import  { useEffect, useState } from "react";
 import { FaArrowLeft } from "react-icons/fa6";
 import { NavLink } from "react-router-dom";
 
+declare global {
+  interface Window {
+    Calendly?: {
+      closePopupWidget: () => void;
+      [key: string]: any;
+    };
+  }
+}
+
 const Calendly = () => {
   const [showBackButton, setShowBackButton] = useState(false);
 

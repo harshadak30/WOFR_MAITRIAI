@@ -54,8 +54,7 @@ export default function Features() {
               </h3>
 
               <p className="text-black rounded-lg p-4 text-sm leading-relaxed lg:text-xl">
-                Li Europan lingues es membres del sam familie. Lor separat
-                existentie es un myth.
+             Reliable assistance to ensure smooth financial operations and user satisfaction.
               </p>
             </div>
 
@@ -90,8 +89,8 @@ export default function Features() {
                 Financial Management
               </h3>
               <p className="text-white/90 text-lg  md:text-sm p-10 text-center w-90 lg:text-xl">
-                Lorem ipsum dolor sit amet consectetur. Amet magna a aliquet
-                praesent rhoncus diam.
+               Financial management module for accounting, invoicing, expense tracking, 
+               budgeting, and financial reporting
               </p>
             </div>
 
@@ -111,8 +110,7 @@ export default function Features() {
               </h3>
 
               <p className="text-black rounded-lg py-4 pl-22 md:pl-5 text-sm leading-relaxed lg:text-xl">
-                Li Europan lingues es membres del sam familie. Lor separat
-                existentie es un myth.
+               Adhering to financial regulations and security standards for complete compliance.
               </p>
             </div>
           </div>

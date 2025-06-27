@@ -10,7 +10,37 @@ import {
   Users,
   Clock
 } from "lucide-react";
-
+interface LeaseData {
+  id: string;
+  leaseNumber: string;
+  propertyType: string;
+  client: string;
+  price: number;
+  startDate: string;
+  endDate: string;
+  status: string;
+  propertyId: string;
+  propertyName: string;
+  duration: { years: number; months: number; days: number };
+  entityMaster: string[];
+  leaserMaster: string[];
+  department: string[];
+  annualPayment: number;
+  paymentFrequency: string;
+  paymentTiming: string;
+  incrementalBorrowingRate: number;
+  initialDirectCosts: number;
+  paymentDelay: number;
+  isShortTerm: boolean;
+  isLowValue: boolean;
+  hasMultiEntityAllocation: boolean;
+  entityDepartmentPercentages?: { [key: string]: { [key: string]: number } };
+  lessorPercentages?: { [key: string]: number };
+  rentRevisions: { id: string; revisionDate: string; revisedPayment: number }[];
+  securityDeposits: { id: string; depositNumber: string; amount: number; rate: number; startDate: string; endDate: string; remark: string }[];
+  rejectionReason?: string;
+  rejectionCategory?: string;
+}
 // Sample lease data structure
 const sampleLeases = [
   {
@@ -94,7 +124,7 @@ const sampleLeases = [
 ];
 
 const CheckerDashboard = () => {
-  const [selectedLease, setSelectedLease] = useState(null);
+  const [selectedLease, setSelectedLease] = useState<LeaseData | null>(null);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectionCategory, setRejectionCategory] = useState("");
@@ -115,14 +145,9 @@ const CheckerDashboard = () => {
     return String(value);
   };
 
-  const handleLeaseClick = (lease: React.SetStateAction<null> | {
-      id: string; leaseNumber: string; propertyType: string; client: string; price: number; startDate: string; endDate: string; status: string;
-      // Detailed lease information
-      propertyId: string; propertyName: string; duration: { years: number; months: number; days: number; }; entityMaster: string[]; leaserMaster: string[]; department: string[]; annualPayment: number; paymentFrequency: string; paymentTiming: string; incrementalBorrowingRate: number; initialDirectCosts: number; paymentDelay: number; isShortTerm: boolean; isLowValue: boolean; hasMultiEntityAllocation: boolean; entityDepartmentPercentages: { "Entity A": { IT: number; Operations: number; }; "Entity B": { IT: number; Operations: number; }; }; lessorPercentages: { "Lessor ABC Corp": number; }; rentRevisions: { id: string; revisionDate: string; revisedPayment: number; }[]; securityDeposits: { id: string; depositNumber: string; amount: number; rate: number; startDate: string; endDate: string; remark: string; }[];
-    } | { id: string; leaseNumber: string; propertyType: string; client: string; price: number; startDate: string; endDate: string; status: string; propertyId: string; propertyName: string; duration: { years: number; months: number; days: number; }; entityMaster: string[]; leaserMaster: string[]; department: string[]; annualPayment: number; paymentFrequency: string; paymentTiming: string; incrementalBorrowingRate: number; initialDirectCosts: number; paymentDelay: number; isShortTerm: boolean; isLowValue: boolean; hasMultiEntityAllocation: boolean; rentRevisions: never[]; securityDeposits: never[]; entityDepartmentPercentages?: undefined; lessorPercentages?: undefined; }) => {
+  const handleLeaseClick = (lease: LeaseData) => {
     setSelectedLease(lease);
   };
-
   const handleBackToList = () => {
     setSelectedLease(null);
   };
@@ -163,10 +188,10 @@ const CheckerDashboard = () => {
     }
   };
 
-  const getUniqueDepartments = (lease: { entityDepartmentPercentages: ArrayLike<unknown> | { [s: string]: unknown; }; }) => {
+  const getUniqueDepartments = (lease: { entityDepartmentPercentages?: { [key: string]: { [key: string]: number } } }) => {
     if (!lease.entityDepartmentPercentages) return [];
     
-    const deptSet = new Set();
+    const deptSet = new Set<string>();
     Object.values(lease.entityDepartmentPercentages).forEach(
       (entityDepts) => {
         Object.keys(entityDepts).forEach((dept) => deptSet.add(dept));
@@ -177,7 +202,7 @@ const CheckerDashboard = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    const statusConfig = {
+    const statusConfig: { [key: string]: { color: string; text: string } } = {
       pending_review: { color: "bg-yellow-100 text-yellow-800", text: "Pending Review" },
       approved: { color: "bg-green-100 text-green-800", text: "Approved" },
       rejected: { color: "bg-red-100 text-red-800", text: "Rejected" }
@@ -289,7 +314,7 @@ const CheckerDashboard = () => {
   };
 
   // Lease Review Component
-  const LeaseReview = ({ lease }) => {
+  const LeaseReview = ({ lease }: { lease: LeaseData }) => {
     const isMultiEntityMode = lease.hasMultiEntityAllocation;
     const selectedEntities = Array.isArray(lease.entityMaster) ? lease.entityMaster : [lease.entityMaster];
     const selectedLessors = Array.isArray(lease.leaserMaster) ? lease.leaserMaster : [lease.leaserMaster];
@@ -447,38 +472,27 @@ const CheckerDashboard = () => {
                     </p>
                     <div className="mt-2">
                       <div className="flex flex-wrap gap-2">
-                        {selectedEntities.map((entityId: boolean | React.Key | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined) => (
-                          <span
-                            key={entityId}
-                            className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full"
-                          >
-                            {entityId}
-                          </span>
-                        ))}
+                      {selectedEntities.map((entityId: string) => (
+  <span
+    key={entityId}
+    className="px-3 py-1 bg-purple-100 text-purple-800 text-sm rounded-full"
+  >
+    {entityId}
+  </span>
+))}
                       </div>
                     </div>
                   </div>
                 )}
 
-                {selectedLessors.length > 0 && (
-                  <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Lessor(s)
-                    </p>
-                    <div className="mt-2">
-                      <div className="flex flex-wrap gap-2">
-                        {selectedLessors.map((lessor: boolean | React.Key | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined) => (
-                          <span
-                            key={lessor}
-                            className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full"
-                          >
-                            {lessor}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
+{selectedLessors.map((lessor: string) => (
+  <span
+    key={lessor}
+    className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full"
+  >
+    {lessor}
+  </span>
+))}
               </div>
 
               {/* Department Display */}
@@ -489,14 +503,14 @@ const CheckerDashboard = () => {
                   </p>
                   <div className="mt-2">
                     <div className="flex flex-wrap gap-2">
-                      {lease.department.map((dept: boolean | React.Key | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined) => (
-                        <span
-                          key={dept}
-                          className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-                        >
-                          {dept}
-                        </span>
-                      ))}
+                    {lease.department.map((dept: string) => (
+  <span
+    key={dept}
+    className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
+  >
+    {dept}
+  </span>
+))}
                     </div>
                   </div>
                 </div>
@@ -535,9 +549,9 @@ const CheckerDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {selectedEntities.map((entityId: boolean | React.Key | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | Promise<string | number | bigint | boolean | React.ReactPortal | React.ReactElement<unknown, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined> | null | undefined, entityIndex: number) => {
-                      const entityPercentages = lease.entityDepartmentPercentages?.[entityId] || {};
-                      const entityTotal = Object.values(entityPercentages).reduce((sum, val) => sum + val, 0);
+                  {selectedEntities.map((entityId: string, entityIndex: number) => {
+  const entityPercentages = lease.entityDepartmentPercentages?.[entityId] || {};
+  const entityTotal = Object.values(entityPercentages).reduce((sum, val) => sum + (val as number), 0);
 
                       return (
                         <tr
@@ -592,7 +606,7 @@ const CheckerDashboard = () => {
                   Annual Lease Payment
                 </p>
                 <p className="mt-1 text-xl font-bold text-green-600">
-                  {formatCurrency(lease.annualPayment)}
+                {formatCurrency(lease.annualPayment?.toString())}
                 </p>
               </div>
 
@@ -619,7 +633,7 @@ const CheckerDashboard = () => {
                   Incremental Borrowing Rate
                 </p>
                 <p className="mt-1 font-medium text-gray-900">
-                  {displayValue(lease.incrementalBorrowingRate, "0")}%
+                {displayValue(lease.incrementalBorrowingRate?.toString(), "0")}%
                 </p>
               </div>
 
@@ -628,7 +642,7 @@ const CheckerDashboard = () => {
                   Initial Direct Costs
                 </p>
                 <p className="mt-1 font-medium text-gray-900">
-                  {formatCurrency(lease.initialDirectCosts)}
+                {formatCurrency(lease.initialDirectCosts?.toString())}
                 </p>
               </div>
 
@@ -637,7 +651,7 @@ const CheckerDashboard = () => {
                   Payment Delay
                 </p>
                 <p className="mt-1 font-medium text-gray-900">
-                  {displayValue(lease.paymentDelay, "0")} days
+                {displayValue(lease.paymentDelay?.toString(), "0")} days
                 </p>
               </div>
             </div>

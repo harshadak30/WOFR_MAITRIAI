@@ -25,7 +25,7 @@ interface Asset {
 }
 
 const AssetMaster: React.FC = () => {
-  const [assetGroups, setAssetGroups] = useState<string[]>([
+  const [assetGroups] = useState<string[]>([
     ...defaultAssetGroups,
   ]);
   const [assets, setAssets] = useState<Asset[]>([]);

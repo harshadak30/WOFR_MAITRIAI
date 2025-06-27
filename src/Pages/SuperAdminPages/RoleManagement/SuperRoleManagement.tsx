@@ -61,38 +61,46 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
       getSubActionOptionsForModulesAndActions(selectedModules, selectedActions),
     [getSubActionOptionsForModulesAndActions, selectedModules, selectedActions]
   );
-  const masterAdminFlattenedData = useMemo(() => {
-    const grouped = new Map<string, any>();
 
-    MasterAdminRoleMappings?.forEach((moduleMapping: any) => {
-      moduleMapping?.module_data?.forEach((roleData: any) => {
-        const groupKey = `${roleData.role_id}-${moduleMapping.module_name}`;
+const masterAdminFlattenedData = useMemo(() => {
+  const grouped = new Map<string, any>();
 
-        if (!grouped.has(groupKey)) {
-          grouped.set(groupKey, {
-            role_id: roleData.role_id,
-            role_name: roleData.role_name,
-            status: roleData.status,
-            assignment_date: moduleMapping.assignment_date,
-            module_name: moduleMapping.module_name,
-            actions: [],
-          });
-        }
+  MasterAdminRoleMappings?.forEach((moduleMapping: any) => {
+    // module_data is an object, not an array
+    const roleData = moduleMapping?.module_data;
 
-        const existingGroup = grouped.get(groupKey)!;
-        roleData?.actions?.forEach((action: any) => {
+    
+    if (roleData && typeof roleData === 'object' && roleData.role_id) {
+      const groupKey = `${roleData.role_id}-${moduleMapping.module_name}`;
+
+      if (!grouped.has(groupKey)) {
+        grouped.set(groupKey, {
+          role_id: roleData.role_id,
+          role_name: roleData.role_name,
+          status: roleData.status,
+          assignment_date: moduleMapping.assignment_date,
+          module_name: moduleMapping.module_name,
+          actions: [],
+        });
+      }
+
+      const existingGroup = grouped.get(groupKey)!;
+      
+      // Process actions array from the roleData
+      if (roleData.actions && Array.isArray(roleData.actions)) {
+        roleData.actions.forEach((action: any) => {
           existingGroup.actions.push({
             action_id: action.action_id,
             action_name: action.action_name,
-            sub_actions: action.all_sub_actions ?? [],
+            sub_actions: Array.isArray(action.all_sub_actions) ? action.all_sub_actions : [],
           });
         });
-      });
-    });
+      }
+    }
+  });
 
-    return Array.from(grouped.values());
-  }, [MasterAdminRoleMappings]);
-
+  return Array.from(grouped.values());
+}, [MasterAdminRoleMappings]);
   const superAdminFlattenedData = useMemo(() => {
     const grouped = new Map<string, any>();
 

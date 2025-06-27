@@ -19,22 +19,24 @@ function UserListPage() {
   const { authState } = useContext(AuthContext);
   const userType = authState.user_type;
   const navigate = useNavigate();
-  useEffect(() => {
-    const loadOrganizations = async () => {
-      if (!authState.token) return;
+useEffect(() => {
+  const loadOrganizations = async () => {
+    // Only load organizations for super_admin users
+    if (userType !== "super_admin" || !authState.token) return;
 
-      try {
-        const result = await fetchOrganizations(authState.token, 1, 10);
-        setOrganizations(result.organizations);
-      } catch (error) {
-        console.error("Failed to load organizations:", error);
-      } finally {
-        setIsLoadingOrganizations(false);
-      }
-    };
+    try {
+      const result = await fetchOrganizations(authState.token, 1, 10);
+      setOrganizations(result.organizations);
+    } catch (error) {
+      console.error("Failed to load organizations:", error);
+    } finally {
+      setIsLoadingOrganizations(false);
+    }
+  };
 
-    loadOrganizations();
-  }, [authState.token]);
+  loadOrganizations();
+}, [authState.token, userType]);
+
 
   const onBack = () => {
     navigate("/dashboard/org-form");

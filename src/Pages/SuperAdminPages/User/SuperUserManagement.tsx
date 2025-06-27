@@ -135,7 +135,6 @@ const SuperUserManagement: React.FC<UserManagementProps> = ({
         );
 
         const assignments = response.data.data.assigned_screen_to_tenant_user;
-        console.log("after assign role to users", assignments);
 
         setAssignedRoles(assignments || []);
       } catch (error) {

@@ -78,7 +78,7 @@ const Registration: React.FC<RegistrationProps> = () => {
   );
 
   const renderPasswordField = (
-    id: string,
+    id: "password" | "confirmPassword",
     label: string,
     isVisible: boolean,
     toggleVisibility: () => void,
@@ -283,7 +283,7 @@ const Registration: React.FC<RegistrationProps> = () => {
                     errors.confirmPassword?.message,
                     {
                       required: "Please confirm your password",
-                      validate: (value) =>
+                      validate: (value: string) =>
                         value === getValues("password") || "Passwords do not match",
                     }
                   )}

@@ -116,16 +116,16 @@ export interface RentRevision {
 }
 
 export interface LeaseFormData {
-  overallEntityPercentages: any;
+  overallEntityPercentages?: Record<string, number>;
   shortTermValue: string;
-  hasLessorAllocation: boolean;
+  hasLessorAllocation?: boolean;
   // entityDepartmentPercentages: { [s: string]: unknown; } | ArrayLike<unknown>;
-  entityDepartmentPercentages: any;
-  lessorPercentages: {};
-  hasMultiEntityAllocation: boolean;
-  entityMaster: string;
-  leaserMaster: string;
-  department: string;
+  entityDepartmentPercentages?: Record<string, Record<string, number>>;
+  lessorPercentages?: Record<string, number>;
+ hasMultiEntityAllocation?: boolean;
+entityMaster: string | string[];
+leaserMaster: string | string[];
+ department: string[];
   leaseId: string;
   leaseClass: string;
   isShortTerm: boolean;

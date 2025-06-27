@@ -186,12 +186,25 @@ export const UseSuperAdminRoles = () => {
             headers: getAuthHeaders(),
           }
         );
-console.log("fetchAssignedRoles", data.data.assignments);
-
       const transformedModules: ModuleWithActions[] = [];
       
-      setMasterAdminRoleMappings(data.data.assignments);
-      
+      // setMasterAdminRoleMappings(data.data.assignments);
+      setMasterAdminRoleMappings(data.data.assignments.flatMap((assignment: AssignedModule) => 
+  assignment.module_data.map((roleData: AssignedModuleRole) => ({
+    module_data: roleData,
+    assignment_date: assignment.assignment_date,
+    status: roleData.status,
+    mapping_id: 0, // You'll need to provide appropriate values
+    role_id: roleData.role_id,
+    role_name: roleData.role_name,
+    module_id: assignment.module_id,
+    module_name: assignment.module_name,
+    action_id: roleData.actions[0]?.action_id || 0,
+    action_name: roleData.actions[0]?.action_name || '',
+    sub_actions: roleData.actions[0]?.all_sub_actions || [],
+    created_at: assignment.assignment_date
+  }))
+));
       data.data.assignments.forEach((assignment: AssignedModule) => {
         const moduleActions: Action[] = [];
         const moduleRoles: Role[] = [];
@@ -448,13 +461,12 @@ console.log("fetchAssignedRoles", data.data.assignments);
         action_id: actionId,
         sub_action_ids: subActionIds,
       }));
-      console.log("mappings", mappings);
+   
 
       const payload: SuperAdminRoleMappingPayload = {
         superadmin_role_id: superAdminRoleId,
         mappings: mappings,
       };
-console.log("payload", payload);
 
       await axios.post("/api/v1/super-admin-role-mappings", payload, {
         headers: {
