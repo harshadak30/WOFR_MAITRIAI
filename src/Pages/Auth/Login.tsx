@@ -162,10 +162,10 @@ const Login = () => {
                     } rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500`}
                     {...register("email", {
                       required: "Email is required",
-                      pattern: {
-                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                        message: "Invalid email address",
-                      },
+                      // pattern: {
+                      //   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      //   message: "Invalid email address",
+                      // },
                     })}
                   />
                   {errors.email && (

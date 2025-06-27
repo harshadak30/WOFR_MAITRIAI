@@ -98,36 +98,48 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden flex flex-col items-center space-y-2 xs:space-y-3 sm:space-y-4 py-2 xs:py-3 sm:py-4 bg-[#0049AC] text-white absolute w-full z-50">
-            <ul className="space-y-2 sm:space-y-4 w-full text-sm sm:text-base">
-              <li className="w-full">
-                <Link
-                  to="/"
-                  className="block cursor-pointer hover:bg-[#003d90] px-4 sm:px-6 py-1.5 sm:py-2 text-center"
-                >
-                  Home
-                </Link>
-              </li>
-              <li className="w-full">
-                <Link
-                  to="/explore-solutions"
-                  className="block cursor-pointer hover:bg-[#003d90] px-4 sm:px-6 py-1.5 sm:py-2 text-center"
-                >
-                  About Us
-                </Link>
-              </li>
-              <li className="cursor-pointer hover:bg-[#003d90] px-4 sm:px-6 py-1.5 sm:py-2 text-center">
-                Services
-              </li>
-              <li className="cursor-pointer hover:bg-[#003d90] px-4 sm:px-6 py-1.5 sm:py-2 text-center">
-                Resources
-              </li>
-              <li className="cursor-pointer hover:bg-[#003d90] px-4 sm:px-6 py-1.5 sm:py-2 text-center">
-                Testimonials
-              </li>
-            </ul>
-          </div>
-        )}
+  <div className="md:hidden flex flex-col items-center space-y-2 xs:space-y-3 sm:space-y-4 py-2 xs:py-3 sm:py-4 bg-[#0049AC] text-white absolute w-full z-50">
+    <ul className="space-y-2 sm:space-y-4 w-full text-sm sm:text-base">
+      <li className="w-full">
+        <Link
+          to="/"
+          onClick={() => setIsMenuOpen(false)}
+          className="block cursor-pointer hover:bg-[#003d90] px-4 sm:px-6 py-1.5 sm:py-2 text-center"
+        >
+          Home
+        </Link>
+      </li>
+      <li className="w-full">
+        <Link
+          to="/explore-solutions"
+          onClick={() => setIsMenuOpen(false)}
+          className="block cursor-pointer hover:bg-[#003d90] px-4 sm:px-6 py-1.5 sm:py-2 text-center"
+        >
+          About Us
+        </Link>
+      </li>
+      <li
+        className="cursor-pointer hover:bg-[#003d90] px-4 sm:px-6 py-1.5 sm:py-2 text-center"
+        onClick={() => setIsMenuOpen(false)}
+      >
+        Services
+      </li>
+      <li
+        className="cursor-pointer hover:bg-[#003d90] px-4 sm:px-6 py-1.5 sm:py-2 text-center"
+        onClick={() => setIsMenuOpen(false)}
+      >
+        Resources
+      </li>
+      <li
+        className="cursor-pointer hover:bg-[#003d90] px-4 sm:px-6 py-1.5 sm:py-2 text-center"
+        onClick={() => setIsMenuOpen(false)}
+      >
+        Testimonials
+      </li>
+    </ul>
+  </div>
+)}
+
       </nav>
     </div>
   );
