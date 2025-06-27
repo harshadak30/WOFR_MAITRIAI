@@ -172,10 +172,10 @@ const Registration: React.FC<RegistrationProps> = () => {
                       } focus:outline-none focus:ring-2 focus:ring-teal-500`}
                       {...register("email", {
                         required: "Email is required",
-                        pattern: {
-                          value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                          message: "Invalid email address",
-                        },
+                        // pattern: {
+                        //   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.(com|org|net)$/i,
+                        //   message: "Invalid email address",
+                        // },
                       })}
                     />
                     <button

@@ -19,7 +19,7 @@ import CreateLease from "../Pages/LeaseMangement/createLease/CreateLease";
 import PublicLayoutWrapper from "../component/layout/PublicLayoutWrapper";
 import DashboardLayout from "../component/layout/DashboardLayout";
 import UserProfile from "../Pages/MasterAdmin/Users/UserProfile";
-import SuperUserProfile from "../Pages/SuperAdminPages/User/SuperUserProfile";
+// import SuperUserProfile from "../Pages/SuperAdminPages/User/SuperUserProfile";
 
 export const publicRoutes: RouteObject[] = [
   {
@@ -157,14 +157,14 @@ export const dashboardRoutes: RouteObject[] = [
           </ProtectedRoute>
         ),
       },
-      {
-        path: "users/SuperuserDetails/:id",
-        element: (
-          <ProtectedRoute allowedRoles={["dev", "super_admin"]}>
-            <SuperUserProfile />
-          </ProtectedRoute>
-        ),
-      },
+      // {
+      //   path: "users/SuperuserDetails/:id",
+      //   element: (
+      //     <ProtectedRoute allowedRoles={["dev", "super_admin"]}>
+      //       <SuperUserProfile />
+      //     </ProtectedRoute>
+      //   ),
+      // },
       {
         path: "create-lease",
         element: (

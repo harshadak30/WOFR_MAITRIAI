@@ -242,10 +242,10 @@ export const useLogin = (): UseLoginReturn => {
   const requestPasswordReset = async (e: React.FormEvent, email: string) => {
     e.preventDefault();
 
-    if (!email || !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email)) {
-      showNotification("Please enter a valid email address", false);
-      return;
-    }
+  if (!email || !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.(com|org|net)$/i.test(email)) {
+  showNotification("Please enter a valid email address", false);
+  return;
+}
 
     setIsPasswordResetProcessing(true);
 

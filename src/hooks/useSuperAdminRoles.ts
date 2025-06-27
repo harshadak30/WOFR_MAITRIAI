@@ -488,10 +488,10 @@ export const UseSuperAdminRoles = () => {
       return true;
     } catch (error: any) {
       console.error("Failed to create super admin role mapping:", error);
-      const errorMessage = error?.response?.data?.meta?.message || 
+      const errorMessage = error?.response?.data?.detail || 
                           error?.response?.data?.message || 
                           error?.message || 
-                          "Unknown error";
+                          "Unknown error";                          
       setMessage(`Failed to create super admin role mapping: ${errorMessage}`);
       return false;
     } finally {
@@ -506,53 +506,6 @@ export const UseSuperAdminRoles = () => {
     fetchSuperAdminRoleMappings
   ]);
 
-  // Optimized role creation with better error handling
-  // const handleCreateRole = useCallback(async (roleData: {
-  //   role_name: string;
-  //   description: string;
-  //   status: string;
-  // }) => {
-  //   if (!roleData.role_name.trim()) {
-  //     setMessage("Role name is required");
-  //     return ;
-  //   }
-
-  //   setIsCreatingRole(true);
-  //   try {
-  //     const { data } = await axios.post("api/v1/superadmin/roles", roleData, {
-  //       headers: {
-  //         ...getAuthHeaders(),
-  //         "Content-Type": "application/json",
-  //       },
-  //     });
-
-  //     const newRole = data.data.role;
-
-  //     setSuperAdminRoles((prev) => [
-  //       ...prev,
-  //       {
-  //         ...newRole,
-  //         enabled: newRole.status === "active",
-  //         source: "superadmin" as const,
-  //       },
-  //     ]);
-  //     setMessage(`Role "${roleData.role_name}" created successfully`);
-
-  //     await fetchSuperAdminRoles();
-
-  //     // return true;
-  //   } catch (error: any) {
-  //     console.error("Failed to create role:", error);
-  //     const errorMessage = error?.response?.data?.meta?.message || 
-  //                         error?.response?.data?.message || 
-  //                         error?.message || 
-  //                         "Unknown error";
-  //     setMessage(`Failed to create role: ${errorMessage}`);
-  //     // return false;
-  //   } finally {
-  //     setIsCreatingRole(false);
-  //   }
-  // }, [getAuthHeaders, fetchSuperAdminRoles]);
   const handleCreateRole = useCallback(
     async (roleData: { role_name: string; description: string; status: string }) => {
       if (!roleData.role_name.trim()) {
@@ -583,14 +536,12 @@ export const UseSuperAdminRoles = () => {
   
         await fetchSuperAdminRoles();
       } catch (error: any) {
-        console.error("Failed to create role:", error);
+        console.error( error);
         const errorMessage =
-          error?.response?.data?.meta?.message ||
-          error?.response?.data?.message ||
-          error?.message ||
+          error?.response?.data?.detail ||
           "Unknown error";
   
-        setMessage(`Failed to create role: ${errorMessage}`);
+        setMessage(`Failed : ${errorMessage}`);
       } finally {
         setIsCreatingRole(false);
       }

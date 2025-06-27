@@ -85,11 +85,11 @@ export const useRegister = (): UseRegisterReturn => {
       return;
     }
 
-    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-    if (!emailRegex.test(email)) {
-      displayNotification("error", "Invalid email format");
-      return;
-    }
+  const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.(com|org|net)$/i;
+if (!emailRegex.test(email)) {
+  displayNotification("error", "Email must end with .com, .org, or .net");
+  return;
+}
 
     setIsVerifyingEmail(true);
 
