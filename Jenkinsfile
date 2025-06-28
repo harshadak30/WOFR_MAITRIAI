@@ -6,7 +6,6 @@ pipeline {
         stage('Deploy: Clone & Copy') {
             steps {
                 // Clean old temp directory
-                sh 'rm -rf /home/ubuntu/Wofr_frontend'
 
                 // Clone the repository using Jenkins credentials
                 git credentialsId: 'wofr-key',
