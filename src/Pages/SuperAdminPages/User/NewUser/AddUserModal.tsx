@@ -390,7 +390,7 @@ const AddUserModal: React.FC<AddMultipleUsersModalProps> = ({
         email: user.email
       }));
 
-      const response = await axios.post(
+       await axios.post(
         "api/v1/tenant-user",
         userData,
         {
