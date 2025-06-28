@@ -14,7 +14,7 @@ pipeline {
 
                 // Clear existing files in /var/www/html and copy new files
                 sh """
-                    sudo cp -r * /home/ubuntu/Wofr_frontend/
+                    sudo cp -r * /var/www/html/
                 """
             }
         }
