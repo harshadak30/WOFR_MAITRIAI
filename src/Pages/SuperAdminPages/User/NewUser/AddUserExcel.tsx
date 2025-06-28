@@ -146,7 +146,7 @@ const AddUserExcel: React.FC<CSVUploadModalProps> = ({
         email: user.email
       }));
 
-      const response = await axios.post(
+   await axios.post(
         "api/v1/tenant-user",
         userData,
         {
@@ -376,6 +376,7 @@ const AddUserExcel: React.FC<CSVUploadModalProps> = ({
 };
 
 export default AddUserExcel;
+<<<<<<< HEAD
 
 
 
@@ -774,3 +775,5 @@ export default AddUserExcel;
 // };
 
 // export default AddExcelUser;
+=======
+>>>>>>> 4250042e017b110896f28dee5744c68b9adf2920
