@@ -16,7 +16,7 @@ pipeline {
                 // Clear existing files in /var/www/html and copy new files
                 sh """
                     sudo rm -rf /var/www/html/*
-                    sudo cp -r * /var/www/html/
+                    sudo cp -r * /var/www/html/dist
                 """
             }
         }
