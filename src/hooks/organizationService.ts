@@ -1,7 +1,6 @@
 import axios from '../helper/axios';
 import { Organization } from '../types';
 
-
 export const fetchOrganizations = async (
   token: string,
   page: number = 1,
@@ -25,15 +24,18 @@ export const fetchOrganizations = async (
 
     const organizations = tenants.map((tenant: any) => ({
       tenant_id: tenant.tenant_id,
-      name: tenant.name,
-      organization_type: tenant.organization_type,
-      industry_sector: tenant.industry_sector,
+      user_id: tenant.user_id,
+      user_name: tenant.user_name,
+      name: tenant.name === "N/A" ? "" : tenant.name,
+      organization_type: tenant.organization_type === "N/A" ? "" : tenant.organization_type,
+      industry_sector: tenant.industry_sector === "N/A" ? "" : tenant.industry_sector,
       registration_tax_id: tenant.registration_tax_id,
       address: tenant.address,
-      country: tenant.country,
-      zip_postal_code: tenant.zip_postal_code,
+      country: tenant.country === "N/A" ? "" : tenant.country,
+      zip_postal_code: tenant.zip_postal_code === "N/A" ? "" : tenant.zip_postal_code,
       date_of_incorporation: tenant.date_of_incorporation,
       created_at: tenant.created_at,
+      updated_at: tenant.updated_at,
     }));
 
     return { organizations, totalItems };
@@ -43,33 +45,12 @@ export const fetchOrganizations = async (
   }
 };
 
-export const createOrganization = async (
-  organizationData: any,
-  token: string
-): Promise<Organization> => {
-  try {
-    const response = await axios.post("api/v1/tenant", organizationData, {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return response.data?.data;
-  } catch (error) {
-    console.error("Failed to create organization:", error);
-    throw error;
-  }
-};
-
 export const updateOrganization = async (
-  tenantId: string,
   organizationData: any,
   token: string
 ): Promise<Organization> => {
   try {
-    const response = await axios.put(`api/v1/tenant/${tenantId}`, organizationData, {
+    const response = await axios.put(`api/v1/tenant`, organizationData, {
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",

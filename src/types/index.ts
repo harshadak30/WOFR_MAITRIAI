@@ -14,6 +14,8 @@ export interface MultiSelectDropdownProps {
   onApply: (selected: string[]) => void;
   onReset: () => void;
   className?: string;
+   position?: "left" | "right"; // Add position prop
+  dropdownWidth?: string;
 }
 
 export interface ModuleData {

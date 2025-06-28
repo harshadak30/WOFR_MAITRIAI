@@ -3,6 +3,7 @@ import { ChevronDown, X, User, Check } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../../../hooks/useAuth";
 import axios from "../../../../helper/axios";
+import { createPortal } from "react-dom";
 
 interface Role {
   role_id: number;
@@ -265,72 +266,72 @@ const AssignUser1: React.FC<AssignUserProps> = ({ user, onClose }) => {
     );
   }
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl flex flex-col">
-        {/* Header */}
-        <div className="bg-gray-50 px-6 py-4 border-b flex items-center justify-between flex-shrink-0">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Assign User Roles
-          </h2>
-          <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded">
-            <X className="h-5 w-5" />
-          </button>
+  return createPortal(
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-2 sm:p-4">
+  <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col overflow-hidden border border-gray-200">
+
+    {/* Header */}
+    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 flex items-center justify-between">
+      <h2 className="text-lg font-semibold text-white">Assign User Roles</h2>
+      <button onClick={onClose} className="p-1 hover:bg-white/20 rounded transition">
+        <X className="h-5 w-5 text-white" />
+      </button>
+    </div>
+
+    {/* Content */}
+    <div className="flex-1 overflow-y-auto px-6 py-6 bg-[#F9FAFB]">
+      {/* User Info Box */}
+      <div className="bg-white rounded-xl border border-dashed border-gray-300 p-4 mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <User className="h-5 w-5 text-blue-600" />
+          <span className="font-medium text-gray-800">{user.name}</span>
         </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {/* User Info */}
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <User className="h-4 w-4 text-gray-600" />
-              <span className="font-medium text-gray-900">{user.name}</span>
-            </div>
-            <div className="text-sm text-gray-600 grid grid-cols-1 md:grid-cols-3 gap-2">
-              <div>Email: {user.email}</div>
-              <div>Tenant: {user.tenant_name}</div>
-              <div>ID: {user.tenant_user_id}</div>
-            </div>
-          </div>
-
-          {/* Role Selection */}
-          <div className="mb-6">
-            <MultiSelectDropdown
-              label="Select Roles"
-              selectedValues={selectedRoleIds}
-              options={roleOptions}
-              onChange={handleRoleChange}
-              placeholder="Choose roles to assign"
-            />
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="bg-gray-50 px-6 py-4 border-t flex justify-end gap-3 flex-shrink-0">
-          <button
-            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100"
-            onClick={onClose}
-            disabled={saving}
-          >
-            Cancel
-          </button>
-          <button
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
-            onClick={handleSaveAssignments}
-            disabled={saving || selectedRoleIds.length === 0}
-          >
-            {saving ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                Assigning...
-              </>
-            ) : (
-              `Assign ${selectedRoleIds.length} Role${selectedRoleIds.length !== 1 ? 's' : ''}`
-            )}
-          </button>
+        <div className="text-sm text-gray-600 grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div><span className="font-medium">Email:</span> {user.email}</div>
+          <div><span className="font-medium">Tenant:</span> {user.tenant_name}</div>
+          <div><span className="font-medium">ID:</span> {user.tenant_user_id}</div>
         </div>
       </div>
+
+      {/* Role Selector */}
+      <div className="mb-6">
+        <MultiSelectDropdown
+          label="Select Roles"
+          selectedValues={selectedRoleIds}
+          options={roleOptions}
+          onChange={handleRoleChange}
+          placeholder="Choose roles to assign"
+        />
+      </div>
     </div>
+
+    {/* Footer */}
+    <div className="bg-white px-6 py-4 border-t border-gray-200 flex justify-end gap-3 rounded-b-2xl">
+      <button
+        className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition"
+        onClick={onClose}
+        disabled={saving}
+      >
+        Cancel
+      </button>
+      <button
+        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 transition"
+        onClick={handleSaveAssignments}
+        disabled={saving || selectedRoleIds.length === 0}
+      >
+        {saving ? (
+          <>
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+            Assigning...
+          </>
+        ) : (
+          `Assign ${selectedRoleIds.length} Role${selectedRoleIds.length !== 1 ? 's' : ''}`
+        )}
+      </button>
+    </div>
+  </div>
+</div>,
+ document.body
   );
 };
 

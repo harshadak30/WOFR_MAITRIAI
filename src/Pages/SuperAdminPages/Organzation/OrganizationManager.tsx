@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-
-import { ChevronUp, Plus } from "lucide-react";
+import { ChevronUp, Edit } from "lucide-react";
 import { Organization } from "../../../types";
 import { useAuth } from "../../../hooks/useAuth";
 import OrganizationForm from "../../../component/organization/OrganizationForm";
@@ -34,12 +33,22 @@ const OrganizationManager = () => {
       setOrganizations(result.organizations);
       setTotalItems(result.totalItems);
 
-      if (result.organizations.length === 0 && page === 1) {
-        setShowForm(true);
+      // Check if organization data needs to be filled
+      if (result.organizations.length > 0) {
+        const org = result.organizations[0];
+        const needsUpdate = !org.name || 
+                           !org.organization_type || 
+                           !org.industry_sector || 
+                           !org.country || 
+                           !org.zip_postal_code;
+        
+        if (needsUpdate) {
+          setEditingOrganization(org);
+          setShowForm(true);
+        }
       }
     } catch (error) {
       console.error("Failed to load organizations:", error);
-      if (page === 1) setShowForm(true);
     } finally {
       setIsLoading(false);
     }
@@ -59,11 +68,6 @@ const OrganizationManager = () => {
     loadOrganizations(1);
   };
 
-  const handleAddNew = () => {
-    setEditingOrganization(null);
-    setShowForm(true);
-  };
-
   const handleEditOrganization = (organization: Organization) => {
     setEditingOrganization(organization);
     setShowForm(true);
@@ -74,16 +78,23 @@ const OrganizationManager = () => {
     setEditingOrganization(null);
   };
 
-  return (
-    <div className=" mx-auto ">
+  const isDataIncomplete = (org: Organization) => {
+    return !org.name || 
+           !org.organization_type || 
+           !org.industry_sector || 
+           !org.country || 
+           !org.zip_postal_code;
+  };
 
+  return (
+    <div className="mx-auto">
       {showForm ? (
         <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
           <div className="p-6 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-xl font-semibold text-gray-800">
-              {editingOrganization
-                ? "Edit Organization"
-                : "Register New Organization"}
+              {editingOrganization && isDataIncomplete(editingOrganization)
+                ? "Complete Organization Details"
+                : "Edit Organization"}
             </h2>
             <button
               onClick={handleCancelForm}
@@ -100,18 +111,47 @@ const OrganizationManager = () => {
         </div>
       ) : (
         organizations.length > 0 && (
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
-            <OrganizationTable
-              organizations={organizations}
-              isLoading={isLoading}
-              currentPage={currentPage}
-              totalItems={totalItems}
-              itemsPerPage={
-                currentPage === 1 ? firstPageLimit : subsequentPageLimit
-              }
-              onPageChange={handlePageChange}
-              onEdit={handleEditOrganization}
-            />
+          <div className="space-y-4">
+            {/* Show alert if data is incomplete */}
+            {organizations.some(org => isDataIncomplete(org)) && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-yellow-800">
+                        Organization details are incomplete. Please complete your organization information.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleEditOrganization(organizations[0])}
+                    className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1.5 rounded text-sm transition-colors"
+                  >
+                    <Edit size={14} />
+                    Complete Details
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+              <OrganizationTable
+                organizations={organizations}
+                isLoading={isLoading}
+                currentPage={currentPage}
+                totalItems={totalItems}
+                itemsPerPage={
+                  currentPage === 1 ? firstPageLimit : subsequentPageLimit
+                }
+                onPageChange={handlePageChange}
+                onEdit={handleEditOrganization}
+              />
+            </div>
           </div>
         )
       )}
@@ -123,16 +163,9 @@ const OrganizationManager = () => {
               No Organizations Found
             </h3>
             <p className="text-gray-600">
-              Get started by registering your first organization
+              No tenant data available
             </p>
           </div>
-          <button
-            onClick={handleAddNew}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg transition-all duration-200 shadow-sm"
-          >
-            <Plus size={18} />
-            <span>Register Organization</span>
-          </button>
         </div>
       )}
 
@@ -146,5 +179,3 @@ const OrganizationManager = () => {
 };
 
 export default OrganizationManager;
-
-
