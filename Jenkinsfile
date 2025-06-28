@@ -14,7 +14,7 @@ pipeline {
                     sh """
                         
                         # Remove old temp if exists
-                        rm -rf ${PROJECT_PATH}
+                        sudo rm -rf ${PROJECT_PATH}
                         
                         # Clone fresh
                         git clone ${GIT_REPO} ${PROJECT_PATH}
