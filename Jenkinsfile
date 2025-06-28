@@ -35,6 +35,10 @@ pipeline {
 
                 // Copy new build to Nginx folder
                 sh 'sudo cp -r dist/* /var/www/html/'
+
+                // Restart Nginx to apply changes
+                echo '🔄 Restarting Nginx...'
+                sh 'sudo systemctl restart nginx'
             }
         }
     }
