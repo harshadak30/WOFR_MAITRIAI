@@ -2,8 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DEPLOY_USER = 'ubuntu'
-        DEPLOY_HOST = '13.203.16.246'
+
         DEPLOY_PATH = '/var/www/html'
         PROJECT_PATH = '/home/ubuntu/Wofr_frontend'
         GIT_REPO = 'https://github.com/Finrep-Advisors-LLP/WOFR_Frontend.git'
@@ -12,10 +11,7 @@ pipeline {
     stages {
         stage('Deploy: Clone & Copy') {
             steps {
-                sshagent (credentials: ["${SSH_KEY_ID}"]) {
                     sh """
-                    ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_HOST} '
-                        set -e
                         
                         # Remove old temp if exists
                         rm -rf ${PROJECT_PATH}
@@ -33,7 +29,7 @@ pipeline {
                 }
             }
         }
-    }
+    
 
     post {
         success {
