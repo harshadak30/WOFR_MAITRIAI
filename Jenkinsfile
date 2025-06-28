@@ -2,15 +2,20 @@ pipeline {
     agent any
 
     stages {
+
         stage('Deploy: Clone & Copy') {
             steps {
+
+               
+                
                     sh """
                         
                         # Remove old temp if exists
                         rm -rf /home/ubuntu/Wofr_frontend
                         
-                        # Clone fresh
-                        git clone https://github.com/Finrep-Advisors-LLP/WOFR_Frontend.git /home/ubuntu/Wofr_frontend
+                        git credentialsId: 'wofr-key',
+                            url: 'https://github.com/Finrep-Advisors-LLP/WOFR_Frontend.git',
+                            branch: 'main'
                         
                         # Clear existing /var/www/html
                         sudo rm -rf /var/www/html/*
