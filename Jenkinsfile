@@ -1,21 +1,40 @@
 pipeline {
     agent any
 
+    environment {
+        NODE_ENV = 'production'
+    }
+
     stages {
-
-        stage('Deploy: Clone & Copy') {
+        stage('Checkout') {
             steps {
-                // Clean old temp directory
+                checkout scm
+            }
+        }
 
-                // Clone the repository using Jenkins credentials
-                git credentialsId: 'wofr-key',
-                    url: 'https://github.com/Finrep-Advisors-LLP/WOFR_Frontend.git',
-                    branch: 'main'
+        stage('Install Dependencies') {
+            steps {
+                echo '📦 Installing dependencies...'
+                sh 'npm install'
+            }
+        }
 
-                // Clear existing files in /var/www/html and copy new files
-                sh """
-                    sudo cp -r * /var/www/html/
-                """
+        stage('Build Project') {
+            steps {
+                echo '⚙️ Building project...'
+                sh 'npm run build'
+            }
+        }
+
+        stage('Deploy to Nginx') {
+            steps {
+                echo '🚀 Deploying to Nginx...'
+
+                // Clear existing files
+                sh 'sudo rm -rf /var/www/html/*'
+
+                // Copy new build to Nginx folder
+                sh 'sudo cp -r dist/* /var/www/html/'
             }
         }
     }
