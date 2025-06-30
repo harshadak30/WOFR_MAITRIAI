@@ -22,8 +22,10 @@ const ExternalOrganizations: React.FC<ExternalOrganizationUserProps> = ({
 }) => {
   const [users, setUsers] = useState<UserData[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [userModuleStatus, setUserModuleStatus] = useState<Record<number, boolean>>({});
+  const [loading] = useState(false);
+  // const [userModuleStatus, setUserModuleStatus] = useState<
+  //   Record<number, boolean>
+  // >({});
   const [moduleDropdownOptions, setModuleDropdownOptions] = useState<
     { id: string; label: string }[]
   >([]);
@@ -41,9 +43,7 @@ const ExternalOrganizations: React.FC<ExternalOrganizationUserProps> = ({
     openUpward: boolean;
   }>({ top: 0, left: 0, width: 400, maxHeight: 500, openUpward: false });
   const { authState } = useAuth();
-  const [userSelectedRoles] = useState<
-    Record<number, string[]>
-  >({});
+  const [userSelectedRoles] = useState<Record<number, string[]>>({});
   const [userSelectedModules, setUserSelectedModules] = useState<
     Record<number, string[]>
   >({});
@@ -57,55 +57,58 @@ const ExternalOrganizations: React.FC<ExternalOrganizationUserProps> = ({
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [lastClickTime, setLastClickTime] = useState<number>(0);
 
-
   // SIMPLE POSITIONING - ATTACHED TO BUTTON
-  const calculateDropdownPosition = useCallback((buttonElement: HTMLButtonElement) => {
-    const buttonRect = buttonElement.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-   
-    // Simple responsive width
-    let dropdownWidth = 280; // Fixed compact width
-    if (viewportWidth < 480) {
-      dropdownWidth = Math.min(260, viewportWidth - 40);
-    }
-   
-    // Calculate space
-    const spaceBelow = viewportHeight - buttonRect.bottom - 20;
-    const spaceAbove = buttonRect.top - 20;
-   
-    // Simple height calculation
-    let maxHeight = 300; // Compact height
-    let openUpward = false;
-   
-    if (spaceBelow < 200 && spaceAbove > spaceBelow) {
-      openUpward = true;
-      maxHeight = Math.min(300, spaceAbove);
-    } else {
-      maxHeight = Math.min(300, spaceBelow);
-    }
-   
-    // Position calculation
-    let top = openUpward ? buttonRect.top - maxHeight - 4 : buttonRect.bottom + 4;
-    let left = buttonRect.left;
-   
-    // Keep within viewport
-    if (left + dropdownWidth > viewportWidth - 20) {
-      left = buttonRect.right - dropdownWidth;
-    }
-    if (left < 20) {
-      left = 20;
-    }
-   
-    return {
-      top: Math.max(20, top),
-      left: Math.max(20, left),
-      width: dropdownWidth,
-      maxHeight,
-      openUpward,
-    };
-  }, []);
+  const calculateDropdownPosition = useCallback(
+    (buttonElement: HTMLButtonElement) => {
+      const buttonRect = buttonElement.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
 
+      // Simple responsive width
+      let dropdownWidth = 280; // Fixed compact width
+      if (viewportWidth < 480) {
+        dropdownWidth = Math.min(260, viewportWidth - 40);
+      }
+
+      // Calculate space
+      const spaceBelow = viewportHeight - buttonRect.bottom - 20;
+      const spaceAbove = buttonRect.top - 20;
+
+      // Simple height calculation
+      let maxHeight = 300; // Compact height
+      let openUpward = false;
+
+      if (spaceBelow < 200 && spaceAbove > spaceBelow) {
+        openUpward = true;
+        maxHeight = Math.min(300, spaceAbove);
+      } else {
+        maxHeight = Math.min(300, spaceBelow);
+      }
+
+      // Position calculation
+      let top = openUpward
+        ? buttonRect.top - maxHeight - 4
+        : buttonRect.bottom + 4;
+      let left = buttonRect.left;
+
+      // Keep within viewport
+      if (left + dropdownWidth > viewportWidth - 20) {
+        left = buttonRect.right - dropdownWidth;
+      }
+      if (left < 20) {
+        left = 20;
+      }
+
+      return {
+        top: Math.max(20, top),
+        left: Math.max(20, left),
+        width: dropdownWidth,
+        maxHeight,
+        openUpward,
+      };
+    },
+    []
+  );
 
   // Close dropdown on any scroll or resize
   useEffect(() => {
@@ -115,42 +118,40 @@ const ExternalOrganizations: React.FC<ExternalOrganizationUserProps> = ({
       }
     };
 
-
     // Listen to scroll events on window and table container
-    window.addEventListener('scroll', handleScrollOrResize, true);
-    window.addEventListener('resize', handleScrollOrResize);
-   
+    window.addEventListener("scroll", handleScrollOrResize, true);
+    window.addEventListener("resize", handleScrollOrResize);
+
     const tableContainer = tableContainerRef.current;
     if (tableContainer) {
-      tableContainer.addEventListener('scroll', handleScrollOrResize);
+      tableContainer.addEventListener("scroll", handleScrollOrResize);
     }
 
-
     return () => {
-      window.removeEventListener('scroll', handleScrollOrResize, true);
-      window.removeEventListener('resize', handleScrollOrResize);
+      window.removeEventListener("scroll", handleScrollOrResize, true);
+      window.removeEventListener("resize", handleScrollOrResize);
       if (tableContainer) {
-        tableContainer.removeEventListener('scroll', handleScrollOrResize);
+        tableContainer.removeEventListener("scroll", handleScrollOrResize);
       }
     };
   }, [selectedUser]);
-
 
   // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (selectedUser) {
         const target = event.target as Node;
-       
+
         // Check if click is on a dropdown button
-        const isClickOnDropdownButton = Object.values(dropdownRefs.current).some(
-          button => button && button.contains(target)
-        );
-       
+        const isClickOnDropdownButton = Object.values(
+          dropdownRefs.current
+        ).some((button) => button && button.contains(target));
+
         // Check if click is inside the dropdown content
-        const dropdownElement = document.querySelector('.dropdown-portal');
-        const isClickInsideDropdown = dropdownElement && dropdownElement.contains(target);
-       
+        const dropdownElement = document.querySelector(".dropdown-portal");
+        const isClickInsideDropdown =
+          dropdownElement && dropdownElement.contains(target);
+
         // Close dropdown if click is outside button and dropdown content
         if (!isClickOnDropdownButton && !isClickInsideDropdown) {
           setSelectedUser(null);
@@ -158,11 +159,9 @@ const ExternalOrganizations: React.FC<ExternalOrganizationUserProps> = ({
       }
     };
 
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [selectedUser]);
-
 
   // Fetch all data before rendering UI
   useEffect(() => {
@@ -170,18 +169,27 @@ const ExternalOrganizations: React.FC<ExternalOrganizationUserProps> = ({
       setIsDataLoading(true);
       try {
         // Fetch users, modules, and assignments in parallel
-        const [usersResponse, modulesResponse, assignmentsResponse] = await Promise.all([
-          axios.get("api/users/v1/all-users", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get(`api/v1/modules?page=${currentPage}&limit=${itemsPerPage}&sort_by=module_id&order=asc`, {
-            headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
-          }),
-          axios.get("api/v1/user-role-assignments", {
-            headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
-          })
-        ]);
-
+        const [usersResponse, modulesResponse, assignmentsResponse] =
+          await Promise.all([
+            axios.get("api/users/v1/all-users", {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            axios.get(
+              `api/v1/modules`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  Accept: "application/json",
+                },
+              }
+            ),
+            axios.get("api/v1/user-role-assignments", {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+              },
+            }),
+          ]);
 
         // Process users
         const transformedUsers = usersResponse.data
@@ -200,7 +208,6 @@ const ExternalOrganizations: React.FC<ExternalOrganizationUserProps> = ({
             enabled: user.status === "active",
           }));
 
-
         // Process modules
         const modules = modulesResponse.data.data.modules || [];
         const formattedModules = modules.map((module: any) => ({
@@ -208,20 +215,19 @@ const ExternalOrganizations: React.FC<ExternalOrganizationUserProps> = ({
           label: module.module_name,
         }));
 
-
         // Process assignments
         const assignments = assignmentsResponse.data.data.assignments;
         const userModulesMap: Record<number, string[]> = {};
-
 
         transformedUsers.forEach((user: UserData) => {
           const userAssignments = assignments.filter(
             (a: any) => a.user_id === user.user_id
           );
-          const moduleIds = userAssignments.map((a: any) => String(a.module_id));
+          const moduleIds = userAssignments.map((a: any) =>
+            String(a.module_id)
+          );
           userModulesMap[user.id] = moduleIds;
         });
-
 
         // Set all data at once
         setUsers(transformedUsers);
@@ -236,12 +242,10 @@ const ExternalOrganizations: React.FC<ExternalOrganizationUserProps> = ({
       }
     };
 
-
     if (token) {
       fetchAllData();
     }
   }, [token, currentPage, itemsPerPage]);
-
 
   // API 4: Assign modules to user
   const handleApplyModules = async (
@@ -250,13 +254,11 @@ const ExternalOrganizations: React.FC<ExternalOrganizationUserProps> = ({
   ) => {
     if (isReadOnly) return;
 
-
     try {
       const originalModules = originalUserModules[userId] || [];
       const newModules = selectedModules.filter(
         (moduleId) => !originalModules.includes(moduleId)
       );
-
 
       if (newModules.length > 0) {
         await axios.post(
@@ -274,28 +276,26 @@ const ExternalOrganizations: React.FC<ExternalOrganizationUserProps> = ({
         );
       }
 
-
       toast.success("Modules updated successfully!", {
         position: "top-right",
         duration: 2000,
       });
-
 
       setUserSelectedModules((prev) => ({
         ...prev,
         [userId]: selectedModules,
       }));
 
-
       setOriginalUserModules((prev) => ({
         ...prev,
         [userId]: selectedModules,
       }));
 
-
       setSelectedUser(null);
     } catch (error) {
-      const errorMessage = (error as any)?.response?.data?.detail || "An unexpected error occurred.";
+      const errorMessage =
+        (error as any)?.response?.data?.detail ||
+        "An unexpected error occurred.";
       toast.error(errorMessage, {
         position: "top-right",
         duration: 2000,
@@ -303,43 +303,45 @@ const ExternalOrganizations: React.FC<ExternalOrganizationUserProps> = ({
     }
   };
 
-// ADD this new function after handleApplyModules:
-const handleToggleModuleStatus = async (userId: string, moduleId: string) => {
-  if (isReadOnly) return;
+  // ADD this new function after handleApplyModules:
+  // const handleToggleModuleStatus = async (userId: string, moduleId: string) => {
+  //   if (isReadOnly) return;
 
-  try {
-    await axios.patch(
-      `api/v1/user-role-assignment-toggle?user_id=${userId}&module_id=${moduleId}`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-        },
-      }
-    );
+  //   try {
+  //     await axios.patch(
+  //       `api/v1/user-role-assignment-toggle?user_id=${userId}&module_id=${moduleId}`,
+  //       {},
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //           Accept: "application/json",
+  //         },
+  //       }
+  //     );
 
-    const key = `${userId}_${moduleId}`;
-    const currentStatus = userModuleStatus[key];
-    const newStatus = currentStatus === "active" ? "inactive" : "active";
-    
-    setUserModuleStatus(prev => ({
-      ...prev,
-      [key]: newStatus
-    }));
+  //     const key = `${userId}_${moduleId}`;
+  //     const currentStatus = userModuleStatus[key];
+  //     const newStatus = currentStatus === "active" ? "inactive" : "active";
 
-    toast.success("Module status updated successfully!", {
-      position: "top-right",
-      duration: 2000,
-    });
-  } catch (error) {
-    const errorMessage = (error as any)?.response?.data?.detail || "Failed to update module status";
-    toast.error(errorMessage, {
-      position: "top-right",     
-      duration: 2000,
-    });
-  }
-};
+  //     setUserModuleStatus((prev) => ({
+  //       ...prev,
+  //       [key]: newStatus,
+  //     }));
+
+  //     toast.success("Module status updated successfully!", {
+  //       position: "top-right",
+  //       duration: 2000,
+  //     });
+  //   } catch (error) {
+  //     const errorMessage =
+  //       (error as any)?.response?.data?.detail ||
+  //       "Failed to update module status";
+  //     toast.error(errorMessage, {
+  //       position: "top-right",
+  //       duration: 2000,
+  //     });
+  //   }
+  // };
 
   const filteredUsers = users.filter(
     (user) =>
@@ -349,22 +351,20 @@ const handleToggleModuleStatus = async (userId: string, moduleId: string) => {
       user.phone_number.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-
   const totalItems = filteredUsers.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
 
-
   const handleToggleChange = (id: number) => {
     if (isReadOnly) return;
     setUsers(
       users.map((user) =>
         user.id === id ? { ...user, enabled: !user.enabled } : user
-    ));
+      )
+    );
   };
-
 
   const handleResetModules = (userId: number) => {
     if (isReadOnly) return;
@@ -373,7 +373,6 @@ const handleToggleModuleStatus = async (userId: string, moduleId: string) => {
       [userId]: [...(originalUserModules[userId] || [])],
     });
   };
-
 
   const handleToNavigate = (user: UserData) => {
     navigate(`userDetails/${user.user_id}`, {
@@ -385,25 +384,29 @@ const handleToggleModuleStatus = async (userId: string, moduleId: string) => {
     });
   };
 
-
   // Enhanced toggle dropdown with double-click detection
   const toggleDropdown = (userId: number, type: "role" | "module") => {
     if (isReadOnly) return;
-   
+
     const currentTime = Date.now();
     const timeDiff = currentTime - lastClickTime;
-   
+
     // Double-click detection (within 300ms)
-    if (timeDiff < 300 && selectedUser?.id === userId && selectedUser?.type === type) {
+    if (
+      timeDiff < 300 &&
+      selectedUser?.id === userId &&
+      selectedUser?.type === type
+    ) {
       setSelectedUser(null);
       setLastClickTime(0);
       return;
     }
-   
+
     setLastClickTime(currentTime);
-   
-    const isCurrentlyOpen = selectedUser?.id === userId && selectedUser?.type === type;
-   
+
+    const isCurrentlyOpen =
+      selectedUser?.id === userId && selectedUser?.type === type;
+
     if (isCurrentlyOpen) {
       setSelectedUser(null);
     } else {
@@ -416,29 +419,28 @@ const handleToggleModuleStatus = async (userId: string, moduleId: string) => {
     }
   };
 
-
   const getSelectedText = (userId: number, type: "role" | "module") => {
     const items =
       type === "role" ? userSelectedRoles[userId] : userSelectedModules[userId];
-    if (!items?.length) return type === "role" ? "Select Roles" : "Select Modules";
-
+    if (!items?.length)
+      return type === "role" ? "Select Roles" : "Select Modules";
 
     const options = type === "role" ? roleOptions : moduleDropdownOptions;
     const selectedLabels = items
-      .map((id) => options.find((opt: { id: string; }) => opt.id === id)?.label)
+      .map((id) => options.find((opt: { id: string }) => opt.id === id)?.label)
       .filter(Boolean);
-
 
     return (
       <span className="flex items-center">
         <span className="inline-flex items-center justify-center min-w-[20px] h-5 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-semibold rounded-full px-1.5 mr-2 shadow-sm">
           {selectedLabels.length}
         </span>
-        <span className="text-gray-700">{type === "role" ? "Roles" : "Modules"}</span>
+        <span className="text-gray-700">
+          {type === "role" ? "Roles" : "Modules"}
+        </span>
       </span>
     );
   };
-
 
   // Show loading state until all data is loaded
   if (isDataLoading) {
@@ -458,7 +460,6 @@ const handleToggleModuleStatus = async (userId: string, moduleId: string) => {
     );
   }
 
-
   return (
     <div className=" bg-gray-50 p-4 lg:p-6">
       <div className="mx-auto space-y-6">
@@ -471,18 +472,33 @@ const handleToggleModuleStatus = async (userId: string, moduleId: string) => {
           <div className="overflow-x-auto">
             {/* Vertical scroll wrapper */}
             <div className=" overflow-y-auto">
-              <table className="min-w-full divide-y divide-gray-200" >
+              <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50 sticky top-0 z-10">
-               
-                    <tr>
-                    <TableHeader className=" text-center text-xs font-semibold text-gray-700 uppercase tracking-wide">#</TableHeader>
-                    <TableHeader className=" text-xs font-semibold text-gray-700 uppercase tracking-wide">Organization</TableHeader>
-                    <TableHeader className=" text-xs font-semibold text-gray-700 uppercase tracking-wide">User</TableHeader>
-                    <TableHeader className=" text-xs font-semibold text-gray-700 uppercase tracking-wide">Email</TableHeader>
-                    <TableHeader className=" text-xs font-semibold text-gray-700 uppercase tracking-wide">Phone</TableHeader>
-                    <TableHeader className=" text-xs font-semibold text-gray-700 uppercase tracking-wide">Modules</TableHeader>
-                    <TableHeader className=" text-center text-xs font-semibold text-gray-700 uppercase tracking-wide">Created</TableHeader>
-                    <TableHeader className=" text-center text-xs font-semibold text-gray-700 uppercase tracking-wide">Status</TableHeader>
+                  <tr>
+                    <TableHeader className=" text-center text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      #
+                    </TableHeader>
+                    <TableHeader className=" text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Organization
+                    </TableHeader>
+                    <TableHeader className=" text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      User
+                    </TableHeader>
+                    <TableHeader className=" text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Email
+                    </TableHeader>
+                    <TableHeader className=" text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Phone
+                    </TableHeader>
+                    <TableHeader className=" text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Modules
+                    </TableHeader>
+                    <TableHeader className=" text-center text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Created
+                    </TableHeader>
+                    <TableHeader className=" text-center text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Status
+                    </TableHeader>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -538,7 +554,8 @@ const handleToggleModuleStatus = async (userId: string, moduleId: string) => {
                                 ? "opacity-70 cursor-not-allowed text-gray-500 bg-gray-50"
                                 : "text-gray-700 hover:bg-gray-50 hover:border-gray-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 active:bg-gray-100"
                             } ${
-                              selectedUser?.id === user.id && selectedUser?.type === "module"
+                              selectedUser?.id === user.id &&
+                              selectedUser?.type === "module"
                                 ? "ring-2 ring-blue-500 border-blue-500 bg-blue-50"
                                 : ""
                             }`}
@@ -547,7 +564,9 @@ const handleToggleModuleStatus = async (userId: string, moduleId: string) => {
                             {userSelectedModules[user.id]?.length > 0 ? (
                               getSelectedText(user.id, "module")
                             ) : (
-                              <span className="text-sm text-gray-500">Select Modules</span>
+                              <span className="text-sm text-gray-500">
+                                Select Modules
+                              </span>
                             )}
                             <ChevronDown
                               size={16}
@@ -580,7 +599,6 @@ const handleToggleModuleStatus = async (userId: string, moduleId: string) => {
                     </tr>
                   ))}
 
-
                   {currentItems.length === 0 && (
                     <tr>
                       <td colSpan={8} className="px-6 py-12 text-center">
@@ -602,7 +620,6 @@ const handleToggleModuleStatus = async (userId: string, moduleId: string) => {
             </div>
           </div>
 
-
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -612,7 +629,6 @@ const handleToggleModuleStatus = async (userId: string, moduleId: string) => {
           />
         </div>
       </div>
-
 
       {/* SIMPLE COMPACT DROPDOWN - LIKE YOUR USERDETAIL PAGE */}
       {!isReadOnly && selectedUser && selectedUser.type === "module" && (
@@ -643,6 +659,4 @@ const handleToggleModuleStatus = async (userId: string, moduleId: string) => {
   );
 };
 
-
 export default ExternalOrganizations;
-
