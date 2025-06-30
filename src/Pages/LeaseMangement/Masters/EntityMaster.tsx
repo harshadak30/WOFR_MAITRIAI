@@ -4,7 +4,7 @@ import { useState } from "react";
 interface FormData {
   name: string;
   Industry_Sector: string;
-  Date_of_Incorporation?: string;
+  incorporation_date?: string;
   Ownership_share?: string;
   Tax_ID: string;
   Parent_Name?: string;
@@ -61,7 +61,7 @@ const EntityMaster: React.FC = () => {
       id: entities.length + 1,
       name: data.name,
       functionalCurrency: data.Industry_Sector || "Not specified",
-      financialStart: data.Date_of_Incorporation || "Not specified",
+      financialStart: data.incorporation_date || "Not specified",
       OwnerShipShare: data.Ownership_share || "Not specified",
       departName: data.Tax_ID || "Not specified",
       parentOrganization:
@@ -374,7 +374,7 @@ const EntityMaster: React.FC = () => {
                     </label>
                     <input
                       type="date"
-                      {...register("Date_of_Incorporation")}
+                      {...register("incorporation_date")}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>

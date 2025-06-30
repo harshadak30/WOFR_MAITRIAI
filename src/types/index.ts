@@ -172,7 +172,7 @@ export interface Organization {
   address: string;
   country: string;
   zip_postal_code: string;
-  date_of_incorporation?: string;
+  incorporation_date?: string;
   created_at: string;
 }
 

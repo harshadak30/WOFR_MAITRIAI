@@ -1,2242 +1,14 @@
-// // import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-// // import { ChevronDown, Check, PlusCircle, X } from "lucide-react";
-// // import React from "react";
-// // import { UseSuperAdminRoles } from "../../../hooks/useSuperAdminRoles";
-// // import CreateRoleForm from "../../MasterAdmin/Roles/CreateRoleForm";
-// // import Modal from "../../../component/common/ui/Modal";
-// // import { Badge } from "../../../component/common/ui/Badge";
-// // import { DropdownButton } from "../../../component/common/ui/DropdownButton";
 
 
-// // const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
-// //   isReadOnly,
-// // }) => {
-// //   const {
-// //     superAdminRoleMappings,
-// //     message,
-// //     setMessage,
-// //     isCreatingRole,
-// //     isLoading,
-// //     MasterAdminRoleMappings,
-// //     availableSuperAdminRoles,
-// //     handleCreateRole,
-// //     handleCreateSuperAdminRoleMapping,
-// //     moduleOptions,
-// //     getActionOptionsForModules,
-// //     getSubActionOptionsForModulesAndActions,
-// //   } = UseSuperAdminRoles();
-
-// //   // Form state
-// //   const [selectedSuperAdminRole, setSelectedSuperAdminRole] = useState("");
-// //   const [selectedModules, setSelectedModules] = useState<string[]>([]);
-// //   const [selectedActions, setSelectedActions] = useState("");
-// //   const [selectedSubActions, setSelectedSubActions] = useState<string[]>([]);
-
-// //   // UI state
-// //   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-// //   const [isModuleDropdownOpen, setIsModuleDropdownOpen] = useState(false);
-// //   const [, setIsActionDropdownOpen] = useState(false);
-// //   const [isSubActionDropdownOpen, setIsSubActionDropdownOpen] = useState(false);
-// //   const [expandedDropdown, setExpandedDropdown] = useState<{
-// //     id: string;
-// //     type: string;
-// //   } | null>(null);
-// //   const [searchTerm] = useState("");
-
-// //   // Refs
-// //   const moduleDropdownRef = useRef<HTMLDivElement>(null);
-// //   const actionDropdownRef = useRef<HTMLDivElement>(null);
-// //   const subActionDropdownRef = useRef<HTMLDivElement>(null);
-
-// //   // Memoized computed values
-// //   const availableActions = useMemo(
-// //     () => getActionOptionsForModules(selectedModules),
-// //     [getActionOptionsForModules, selectedModules]
-// //   );
-
-// //   const availableSubActions = useMemo(
-// //     () =>
-// //       getSubActionOptionsForModulesAndActions(selectedModules, selectedActions),
-// //     [getSubActionOptionsForModulesAndActions, selectedModules, selectedActions]
-// //   );
-
-// // const masterAdminFlattenedData = useMemo(() => {
-// //   const grouped = new Map<string, any>();
-
-// //   MasterAdminRoleMappings?.forEach((moduleMapping: any) => {
-// //     // module_data is an object, not an array
-// //     const roleData = moduleMapping?.module_data;
-
-    
-// //     if (roleData && typeof roleData === 'object' && roleData.role_id) {
-// //       const groupKey = `${roleData.role_id}-${moduleMapping.module_name}`;
-
-// //       if (!grouped.has(groupKey)) {
-// //         grouped.set(groupKey, {
-// //           role_id: roleData.role_id,
-// //           role_name: roleData.role_name,
-// //           status: roleData.status,
-// //           assignment_date: moduleMapping.assignment_date,
-// //           module_name: moduleMapping.module_name,
-// //           actions: [],
-// //         });
-// //       }
-
-// //       const existingGroup = grouped.get(groupKey)!;
-      
-// //       // Process actions array from the roleData
-// //       if (roleData.actions && Array.isArray(roleData.actions)) {
-// //         roleData.actions.forEach((action: any) => {
-// //           existingGroup.actions.push({
-// //             action_id: action.action_id,
-// //             action_name: action.action_name,
-// //             sub_actions: Array.isArray(action.all_sub_actions) ? action.all_sub_actions : [],
-// //           });
-// //         });
-// //       }
-// //     }
-// //   });
-
-// //   return Array.from(grouped.values());
-// // }, [MasterAdminRoleMappings]);
-// //   const superAdminFlattenedData = useMemo(() => {
-// //     const grouped = new Map<string, any>();
-
-// //     superAdminRoleMappings?.forEach((mapping) => {
-// //       const groupKey = `${mapping.super_admin_role_name}-${mapping.module_name}`;
-
-// //       if (!grouped.has(groupKey)) {
-// //         grouped.set(groupKey, {
-// //           super_admin_role_name: mapping.super_admin_role_name,
-// //           module_name: mapping.module_name,
-// //           actions: [],
-// //         });
-// //       }
-
-// //       const existingGroup = grouped.get(groupKey)!;
-
-// //       // Check if action already exists
-// //       let existingAction = existingGroup.actions.find(
-// //         (action: any) => action.action_name === mapping.action_name
-// //       );
-
-// //       if (!existingAction) {
-// //         existingAction = {
-// //           action_name: mapping.action_name,
-// //           sub_actions: [],
-// //         };
-// //         existingGroup.actions.push(existingAction);
-// //       }
-
-// //       // Add sub-actions to the action
-// //       mapping.sub_actions.forEach((subAction) => {
-// //         if (
-// //           !existingAction.sub_actions.find(
-// //             (sa: any) => sa.sub_action_id === subAction.sub_action_id
-// //           )
-// //         ) {
-// //           existingAction.sub_actions.push({
-// //             ...subAction,
-// //             parent_action: mapping.action_name,
-// //           });
-// //         }
-// //       });
-// //     });
-
-// //     return Array.from(grouped.values());
-// //   }, [superAdminRoleMappings]);
-
-
-// //   const filteredSuperAdminData = useMemo(() => {
-// //     if (!searchTerm) return superAdminFlattenedData;
-// //     return superAdminFlattenedData.filter(
-// //       (item: any) =>
-// //         item.super_admin_role_name
-// //           .toLowerCase()
-// //           .includes(searchTerm.toLowerCase()) ||
-// //         item.module_name.toLowerCase().includes(searchTerm.toLowerCase())
-// //     );
-// //   }, [superAdminFlattenedData, searchTerm]);
-
-// //   const filteredMasterData = useMemo(() => {
-// //     if (!searchTerm) return masterAdminFlattenedData;
-// //     return masterAdminFlattenedData.filter(
-// //       (item: any) =>
-// //         item.role_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-// //         item.module_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-// //         item.action_name.toLowerCase().includes(searchTerm.toLowerCase())
-// //     );
-// //   }, [masterAdminFlattenedData, searchTerm]);
-
-// //   // Callbacks
-// //   const handleModuleToggle = useCallback((moduleId: string) => {
-// //     setSelectedModules((prev) => {
-// //       if (prev.includes(moduleId)) {
-// //         return prev.filter((id) => id !== moduleId);
-// //       } else {
-// //         return [...prev, moduleId];
-// //       }
-// //     });
-// //   }, []);
-
-// //   const handleSubActionToggle = useCallback((subActionId: string) => {
-// //     setSelectedSubActions((prev) => {
-// //       if (prev.includes(subActionId)) {
-// //         return prev.filter((id) => id !== subActionId);
-// //       } else {
-// //         return [...prev, subActionId];
-// //       }
-// //     });
-// //   }, []);
-
-// //   const resetForm = useCallback(() => {
-// //     setSelectedSuperAdminRole("");
-// //     setSelectedModules([]);
-// //     setSelectedActions("");
-// //     setSelectedSubActions([]);
-// //     setIsModuleDropdownOpen(false);
-// //     setIsActionDropdownOpen(false);
-// //     setIsSubActionDropdownOpen(false);
-// //   }, []);
-
-// //   const submitPermission = useCallback(async () => {
-// //     if (
-// //       !selectedSuperAdminRole ||
-// //       selectedModules.length === 0 ||
-// //       !selectedActions
-// //     ) {
-// //       setMessage("Please select super admin role, modules, and actions");
-// //       return;
-// //     }
-
-// //     const superAdminRoleId = parseInt(selectedSuperAdminRole);
-
-// //     const success = await handleCreateSuperAdminRoleMapping(
-// //       superAdminRoleId,
-// //       selectedModules,
-// //       selectedActions,
-// //       selectedSubActions
-// //     );
-
-// //     if (success) {
-// //       resetForm();
-// //     }
-// //   }, [
-// //     selectedSuperAdminRole,
-// //     selectedModules,
-// //     selectedActions,
-// //     selectedSubActions,
-// //     handleCreateSuperAdminRoleMapping,
-// //     resetForm,
-// //     setMessage,
-// //   ]);
-
-// //   const toggleDropdown = useCallback(
-// //     (id: number | string, type: "actions" | "subactions") => {
-// //       const dropdownId = `${id}`;
-// //       setExpandedDropdown(
-// //         expandedDropdown?.id === dropdownId && expandedDropdown?.type === type
-// //           ? null
-// //           : { id: dropdownId, type }
-// //       );
-// //     },
-// //     [expandedDropdown]
-// //   );
-
-// //   // Effects
-// //   useEffect(() => {
-// //     setSelectedActions("");
-// //     setSelectedSubActions([]);
-// //     setIsActionDropdownOpen(false);
-// //     setIsSubActionDropdownOpen(false);
-// //   }, [selectedModules]);
-
-// //   useEffect(() => {
-// //     setSelectedSubActions([]);
-// //     setIsSubActionDropdownOpen(false);
-// //   }, [selectedActions]);
-
-// //   useEffect(() => {
-// //     const handleClickOutside = (event: MouseEvent) => {
-// //       const target = event.target as HTMLElement;
-
-// //       if (
-// //         moduleDropdownRef.current &&
-// //         !moduleDropdownRef.current.contains(target)
-// //       ) {
-// //         setIsModuleDropdownOpen(false);
-// //       }
-// //       if (
-// //         actionDropdownRef.current &&
-// //         !actionDropdownRef.current.contains(target)
-// //       ) {
-// //         setIsActionDropdownOpen(false);
-// //       }
-// //       if (
-// //         subActionDropdownRef.current &&
-// //         !subActionDropdownRef.current.contains(target)
-// //       ) {
-// //         setIsSubActionDropdownOpen(false);
-// //       }
-
-// //       const isDropdownClick =
-// //         target.closest("[data-dropdown-toggle]") ||
-// //         target.closest("[data-dropdown-content]");
-// //       if (!isDropdownClick) {
-// //         setExpandedDropdown(null);
-// //       }
-// //     };
-
-// //     document.addEventListener("mousedown", handleClickOutside);
-// //     return () => document.removeEventListener("mousedown", handleClickOutside);
-// //   }, []);
-
-// //   useEffect(() => {
-// //     if (message) {
-// //       const timer = setTimeout(() => setMessage(""), 5000);
-// //       return () => clearTimeout(timer);
-// //     }
-// //   }, [message, setMessage]);
-
-// //   return (
-// //     <div className=" bg-gradient-to-br from-gray-50 to-gray-100 p-2 sm:p-4 lg:p-6">
-// //       <div className="max-w-full mx-auto space-y-6 lg:space-y-8">
-// //         {/* Header Section */}
-// //         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6">
-// //           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-// //             <div className="flex-1"></div>
-// //             <div className="flex flex-col sm:flex-row gap-3">
-// //               <button
-// //                 onClick={() => setIsCreateModalOpen(true)}
-// //                 className="flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 hover:scale-105 hover:shadow-lg disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed disabled:transform-none font-medium"
-// //                 disabled={isReadOnly}
-// //               >
-// //                 <PlusCircle size={18} className="mr-2 flex-shrink-0" />
-// //                 <span className="whitespace-nowrap">Create Role</span>
-// //               </button>
-// //             </div>
-// //           </div>
-
-// //           {/* Message Display */}
-// //           {message && (
-// //             <div
-// //               className={`mt-4 p-4 rounded-lg border-l-4 ${
-// //                 message.includes("Failed") || message.includes("failed")
-// //                   ? "bg-red-50 text-red-700 border-red-400"
-// //                   : "bg-green-50 text-green-700 border-green-400"
-// //               }`}
-// //             >
-// //               <div className="flex items-start">
-// //                 <div className="flex-1 text-sm font-medium">{message}</div>
-// //                 <button
-// //                   onClick={() => setMessage("")}
-// //                   className="ml-2 text-current opacity-70 hover:opacity-100"
-// //                 >
-// //                   <X size={16} />
-// //                 </button>
-// //               </div>
-// //             </div>
-// //           )}
-
-// //           {/* Form Section */}
-// //           <div className="mt-2 space-y-6">
-// //             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
-// //               {/* Super Admin Role Dropdown */}
-// //               <div className="space-y-2">
-// //                 <label className="block text-sm font-medium text-gray-700">
-// //                   Super Admin Role
-// //                   <span className="text-xs text-gray-500 font-normal ml-2">
-// //                     ({availableSuperAdminRoles.length} available)
-// //                   </span>
-// //                 </label>
-// //                 <div className="relative">
-// //                   <select
-// //                     value={selectedSuperAdminRole}
-// //                     onChange={(e) => setSelectedSuperAdminRole(e.target.value)}
-// //                     disabled={isReadOnly || isLoading}
-// //                     className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white text-sm transition-all duration-200 ${
-// //                       selectedSuperAdminRole
-// //                         ? "border-blue-300 bg-blue-50"
-// //                         : "border-gray-300 hover:border-gray-400"
-// //                     } disabled:bg-gray-100 disabled:cursor-not-allowed`}
-// //                   >
-// //                     <option value="">Choose Super Admin Role...</option>
-// //                     {availableSuperAdminRoles.map((role) => (
-// //                       <option key={role.role_id} value={role.role_id}>
-// //                         {role.role_name}
-// //                       </option>
-// //                     ))}
-// //                   </select>
-// //                   <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
-// //                 </div>
-// //                 {selectedSuperAdminRole && (
-// //                   <div className="mt-2">
-// //                     <Badge variant="blue" size="sm">
-// //                       ✓{" "}
-// //                       {
-// //                         availableSuperAdminRoles.find(
-// //                           (r) => r.role_id.toString() === selectedSuperAdminRole
-// //                         )?.role_name
-// //                       }
-// //                     </Badge>
-// //                   </div>
-// //                 )}
-// //               </div>
-
-// //               {/* Module Multi-Select Dropdown */}
-// //               <div ref={moduleDropdownRef} className="space-y-2">
-// //                 <label className="block text-sm font-medium text-gray-700">
-// //                   Select Modules
-// //                   <span className="text-xs text-gray-500 font-normal ml-2">
-// //                     ({moduleOptions.length} available)
-// //                   </span>
-// //                 </label>
-// //                 <div className="relative">
-// //                   <DropdownButton
-// //                     onClick={() =>
-// //                       setIsModuleDropdownOpen(!isModuleDropdownOpen)
-// //                     }
-// //                     isOpen={isModuleDropdownOpen}
-// //                     disabled={
-// //                       !selectedSuperAdminRole || isReadOnly || isLoading
-// //                     }
-// //                   >
-// //                     {selectedModules.length === 0
-// //                       ? "Choose Modules..."
-// //                       : selectedModules.length === 1
-// //                       ? selectedModules[0]
-// //                       : `${selectedModules.length} modules selected`}
-// //                   </DropdownButton>
-
-// //                   {isModuleDropdownOpen && moduleOptions.length > 0 && (
-// //                     <div className="absolute z-20 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-auto">
-// //                       <div className="p-2">
-// //                         {moduleOptions.map((module) => (
-// //                           <label
-// //                             key={module.id}
-// //                             className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer rounded-md transition-colors duration-150"
-// //                           >
-// //                             <input
-// //                               type="checkbox"
-// //                               checked={selectedModules.includes(module.id)}
-// //                               onChange={() => handleModuleToggle(module.id)}
-// //                               className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mr-3 flex-shrink-0"
-// //                             />
-// //                             <span className="text-sm text-gray-700 flex-1 truncate">
-// //                               {module.label}
-// //                             </span>
-// //                             {selectedModules.includes(module.id) && (
-// //                               <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />
-// //                             )}
-// //                           </label>
-// //                         ))}
-// //                       </div>
-// //                     </div>
-// //                   )}
-// //                 </div>
-// //                 {selectedModules.length > 0 && (
-// //                   <div className="flex flex-wrap gap-1 mt-2">
-// //                     {selectedModules.slice(0, 3).map((moduleName, index) => (
-// //                       <Badge key={index} variant="blue" size="sm">
-// //                         {moduleName}
-// //                       </Badge>
-// //                     ))}
-// //                     {selectedModules.length > 3 && (
-// //                       <Badge variant="blue" size="sm">
-// //                         +{selectedModules.length - 3} more
-// //                       </Badge>
-// //                     )}
-// //                   </div>
-// //                 )}
-// //               </div>
-
-// //               {/* Action Dropdown */}
-// //               <div className="space-y-2">
-// //                 <label className="block text-sm font-medium text-gray-700">
-// //                   Select Action
-// //                   <span className="text-xs text-gray-500 font-normal ml-2">
-// //                     ({availableActions.length} available)
-// //                   </span>
-// //                 </label>
-// //                 <div className="relative">
-// //                   <select
-// //                     value={selectedActions}
-// //                     onChange={(e) => setSelectedActions(e.target.value)}
-// //                     disabled={
-// //                       selectedModules.length === 0 || isReadOnly || isLoading
-// //                     }
-// //                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed text-sm transition-all duration-200 hover:border-gray-400"
-// //                   >
-// //                     <option value="">Choose Action...</option>
-// //                     {availableActions.map((action) => (
-// //                       <option key={action.id} value={action.id}>
-// //                         {action.label}
-// //                       </option>
-// //                     ))}
-// //                   </select>
-// //                   <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
-// //                 </div>
-// //                 {selectedActions && (
-// //                   <div className="mt-2">
-// //                     <Badge variant="green" size="sm">
-// //                       {selectedActions}
-// //                     </Badge>
-// //                   </div>
-// //                 )}
-// //               </div>
-
-// //               {/* Sub-Action Multi-Select Dropdown */}
-// //               <div ref={subActionDropdownRef} className="space-y-2">
-// //                 <label className="block text-sm font-medium text-gray-700">
-// //                   Select Sub Actions
-// //                   <span className="text-xs text-gray-500 font-normal ml-2">
-// //                     ({availableSubActions.length} available)
-// //                   </span>
-// //                 </label>
-// //                 <div className="relative">
-// //                   <DropdownButton
-// //                     onClick={() =>
-// //                       setIsSubActionDropdownOpen(!isSubActionDropdownOpen)
-// //                     }
-// //                     isOpen={isSubActionDropdownOpen}
-// //                     disabled={!selectedActions || isReadOnly || isLoading}
-// //                   >
-// //                     {selectedSubActions.length === 0
-// //                       ? "Choose Sub Actions..."
-// //                       : selectedSubActions.length === 1
-// //                       ? selectedSubActions[0]
-// //                       : `${selectedSubActions.length} sub actions selected`}
-// //                   </DropdownButton>
-
-// //                   {isSubActionDropdownOpen &&
-// //                     availableSubActions.length > 0 && (
-// //                       <div className="absolute z-20 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-auto">
-// //                         <div className="p-2">
-// //                           {availableSubActions.map((subAction) => (
-// //                             <label
-// //                               key={`${subAction.parent_action}-${subAction.id}`}
-// //                               className="flex items-start px-3 py-2 hover:bg-gray-50 cursor-pointer rounded-md transition-colors duration-150"
-// //                             >
-// //                               <input
-// //                                 type="checkbox"
-// //                                 checked={selectedSubActions.includes(
-// //                                   subAction.id
-// //                                 )}
-// //                                 onChange={() =>
-// //                                   handleSubActionToggle(subAction.id)
-// //                                 }
-// //                                 className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mr-3 mt-0.5 flex-shrink-0"
-// //                               />
-// //                               <div className="flex-1 min-w-0">
-// //                                 <span className="text-sm text-gray-700 block truncate">
-// //                                   {subAction.label}
-// //                                 </span>
-// //                                 {/* <div className="text-xs text-gray-500 truncate">
-// //                                   {subAction.parent_action}
-// //                                 </div> */}
-// //                               </div>
-// //                               {selectedSubActions.includes(subAction.id) && (
-// //                                 <Check className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-// //                               )}
-// //                             </label>
-// //                           ))}
-// //                         </div>
-// //                       </div>
-// //                     )}
-// //                 </div>
-// //                 {selectedSubActions.length > 0 && (
-// //                   <div className="flex flex-wrap gap-1 mt-2">
-// //                     {selectedSubActions
-// //                       .slice(0, 2)
-// //                       .map((subActionName, index) => (
-// //                         <Badge key={index} variant="orange" size="sm">
-// //                           {subActionName}
-// //                         </Badge>
-// //                       ))}
-// //                     {selectedSubActions.length > 2 && (
-// //                       <Badge variant="orange" size="sm">
-// //                         +{selectedSubActions.length - 2} more
-// //                       </Badge>
-// //                     )}
-// //                   </div>
-// //                 )}
-// //               </div>
-// //             </div>
-
-// //             {/* Submit Button */}
-// //             <div className="flex flex-col sm:flex-row gap-3 ">
-// //               <div className="flex-1" />
-// //               <button
-// //                 onClick={resetForm}
-// //                 className="px-5 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium"
-// //               >
-// //                 Reset Form
-// //               </button>
-// //               <button
-// //                 onClick={submitPermission}
-// //                 disabled={
-// //                   !selectedSuperAdminRole ||
-// //                   selectedModules.length === 0 ||
-// //                   !selectedActions ||
-// //                   isReadOnly ||
-// //                   isLoading
-// //                 }
-// //                 className="px-5 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg font-medium"
-// //               >
-// //                 {isLoading ? "Creating Mapping..." : "Create Role Mapping"}
-// //               </button>
-// //             </div>
-// //           </div>
-// //         </div>
-
-// //         {/* Master Admin Role Permissions Table */}
-// //         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-// //           <div className="px-4 lg:px-6 py-4 border-b border-gray-200 bg-gray-50">
-// //             {/* <h2 className="text-xl font-semibold text-gray-900">
-// //               Master Admin Role Permissions
-// //             </h2> */}
-// //             <h3 className="text-xl font-semibold text-gray-900">
-// //               Default Master roles available for assignment. 
-// //               {/* Create dynamic roles using the form above. */}
-// //             </h3>
-// //           </div>
-
-// //           <div className="overflow-x-auto">
-// //             <table className="w-full divide-y divide-gray-200">
-// //               <thead className="bg-gray-50">
-// //                 <tr>
-// //                   <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-// //                     #
-// //                   </th>
-// //                   <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-// //                     Role
-// //                   </th>
-// //                   <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-// //                     Module
-// //                   </th>
-// //                   <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-// //                     Actions
-// //                   </th>
-// //                   <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-// //                     Sub Actions
-// //                   </th>
-// //                 </tr>
-// //               </thead>
-// //               <tbody className="bg-white divide-y divide-gray-200">
-// //                 {filteredMasterData.length === 0 ? (
-// //                   <tr>
-// //                     <td colSpan={7} className="px-4 lg:px-6 py-12 text-center">
-// //                       <div className="flex flex-col items-center justify-center space-y-3">
-                       
-// //                         <div className="text-gray-500 text-sm">
-// //                           {searchTerm
-// //                             // ? "No modules have been assigned to your user. Please contact the Master User for access."
-// //                             ? "Once a module is assigned, you will be able to access the Master Admin role."
-// //                              : "No modules have been assigned to your Account. Please contact the Master User for access."}
-// //                         </div>
-// //                       </div>
-// //                     </td>
-// //                   </tr>
-// //                 ) : (
-// //                   filteredMasterData.map((roleData: any, index) => (
-// //                     <tr
-// //                       key={`master-${roleData.role_id}-${roleData.module_name}-${roleData.action_name}-${index}`}
-// //                       className="hover:bg-gray-50 transition-colors duration-150"
-// //                     >
-// //                       <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
-// //                         {index + 1}
-// //                       </td>
-// //                       <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
-// //                         <Badge variant="white">{roleData.role_name}</Badge>
-// //                       </td>
-// //                       <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
-// //                         <Badge variant="white">{roleData.module_name}</Badge>
-// //                       </td>
-// //                       <td className="px-3 lg:px-6 py-4">
-// //                         <div className="relative">
-// //                           <button
-// //                             data-dropdown-toggle
-// //                             onClick={() =>
-// //                               toggleDropdown(`master-${index}`, "actions")
-// //                             }
-// //                             className="inline-flex justify-between items-center min-w-[120px] px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
-// //                           >
-// //                             <span className="flex items-center">
-// //                               <Badge variant="green" size="sm">
-// //                                 {roleData.actions.length}
-// //                               </Badge>
-// //                               <span className="text-sm ml-2">Actions</span>
-// //                             </span>
-// //                             <ChevronDown
-// //                               size={16}
-// //                               className={`ml-2 flex-shrink-0 transition-transform duration-200 ${
-// //                                 expandedDropdown?.id === `master-${index}` &&
-// //                                 expandedDropdown?.type === "actions"
-// //                                   ? "transform rotate-180"
-// //                                   : ""
-// //                               }`}
-// //                             />
-// //                           </button>
-// //                           {expandedDropdown?.id === `master-${index}` &&
-// //                             expandedDropdown?.type === "actions" && (
-// //                               <div
-// //                                 data-dropdown-content
-// //                                 className="absolute z-30 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200"
-// //                               >
-// //                                 <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
-// //                                   <span className="text-sm font-semibold text-gray-900">
-// //                                     Actions for {roleData.module_name} (
-// //                                     {roleData.actions.length})
-// //                                   </span>
-// //                                 </div>
-// //                                 <div className="p-3 max-h-60 overflow-y-auto">
-// //                                   <div className="space-y-2">
-// //                                     {roleData.actions.map(
-// //                                       (action: any, actionIdx: number) => (
-// //                                         <div
-// //                                           key={actionIdx}
-// //                                           className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150"
-// //                                         >
-// //                                           <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0"></div>
-// //                                           <div className="flex-1 min-w-0">
-// //                                             <span className="text-sm font-medium text-gray-900 block">
-// //                                               {action.action_name}
-// //                                             </span>
-// //                                             <span className="text-xs text-gray-500">
-// //                                               Sub Actions:{" "}
-// //                                               {action.sub_actions.length}
-// //                                             </span>
-// //                                           </div>
-// //                                         </div>
-// //                                       )
-// //                                     )}
-// //                                   </div>
-// //                                 </div>
-// //                               </div>
-// //                             )}
-// //                         </div>
-// //                       </td>
-
-// //                       <td className="px-3 lg:px-6 py-4">
-// //                         <div className="relative">
-// //                           <button
-// //                             data-dropdown-toggle
-// //                             onClick={() =>
-// //                               toggleDropdown(`master-${index}`, "subactions")
-// //                             }
-// //                             className="inline-flex justify-between items-center min-w-[140px] px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
-// //                           >
-// //                             <span className="flex items-center">
-// //                               <Badge variant="orange" size="sm">
-// //                                 {roleData.actions.reduce(
-// //                                   (total: number, action: any) =>
-// //                                     total + action.sub_actions.length,
-// //                                   0
-// //                                 )}
-// //                               </Badge>
-// //                               <span className="text-sm ml-2">Sub Actions</span>
-// //                             </span>
-// //                             <ChevronDown
-// //                               size={16}
-// //                               className={`ml-2 flex-shrink-0 transition-transform duration-200 ${
-// //                                 expandedDropdown?.id === `master-${index}` &&
-// //                                 expandedDropdown?.type === "subactions"
-// //                                   ? "transform rotate-180"
-// //                                   : ""
-// //                               }`}
-// //                             />
-// //                           </button>
-// //                           {expandedDropdown?.id === `master-${index}` &&
-// //                             expandedDropdown?.type === "subactions" && (
-// //                               <div
-// //                                 data-dropdown-content
-// //                                 className="absolute z-30 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200"
-// //                               >
-// //                                 <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
-// //                                   <span className="text-sm font-semibold text-gray-900">
-// //                                     All Sub Actions (
-// //                                     {roleData.actions.reduce(
-// //                                       (total: number, action: any) =>
-// //                                         total + action.sub_actions.length,
-// //                                       0
-// //                                     )}
-// //                                     )
-// //                                   </span>
-// //                                 </div>
-// //                                 <div className="p-3 max-h-60 overflow-y-auto">
-// //                                   <div className="space-y-3">
-// //                                     {roleData.actions.map(
-// //                                       (action: any, actionIdx: number) => (
-// //                                         <div
-// //                                           key={actionIdx}
-// //                                           className="border-b border-gray-100 pb-2 last:border-b-0"
-// //                                         >
-// //                                           <div className="text-xs font-medium text-gray-600 mb-2">
-// //                                             {action.action_name}
-// //                                           </div>
-// //                                           <div className="space-y-1">
-// //                                             {action.sub_actions.map(
-// //                                               (
-// //                                                 subAction: any,
-// //                                                 subIdx: number
-// //                                               ) => (
-// //                                                 <div
-// //                                                   key={subIdx}
-// //                                                   className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150"
-// //                                                 >
-// //                                                   <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-// //                                                   <div className="flex-1 min-w-0">
-// //                                                     <span className="text-sm font-medium text-gray-900 block">
-// //                                                       {
-// //                                                         subAction.sub_action_name
-// //                                                       }
-// //                                                     </span>
-// //                                                   </div>
-// //                                                 </div>
-// //                                               )
-// //                                             )}
-// //                                           </div>
-// //                                         </div>
-// //                                       )
-// //                                     )}
-// //                                   </div>
-// //                                 </div>
-// //                               </div>
-// //                             )}
-// //                         </div>
-// //                       </td>
-// //                     </tr>
-// //                   ))
-// //                 )}
-// //               </tbody>
-// //             </table>
-// //           </div>
-// //         </div>
-
-// //         {/* Super Admin Role Permissions Table */}
-// //         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-// //           <div className="px-4 lg:px-6 py-4 border-b border-gray-200 bg-gray-50">
-// //             {/* <h2 className="text-xl font-semibold text-gray-900">
-// //               Super Admin Role Permissions
-// //             </h2> */}
-// //             <h3 className="text-xl font-semibold text-gray-900">
-// //               Custom role mappings 
-// //               {/* created through the form above. */}
-// //             </h3>
-// //           </div>
-
-// //           <div className="overflow-x-auto">
-// //             <table className="w-full divide-y divide-gray-200">
-// //               <thead className="bg-gray-50">
-// //                 <tr>
-// //                   <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-// //                     #
-// //                   </th>
-// //                   <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-// //                     Super Admin Role
-// //                   </th>
-// //                   <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-// //                     Module
-// //                   </th>
-// //                   <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-// //                     Actions
-// //                   </th>
-// //                   <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-// //                     Sub Actions
-// //                   </th>
-// //                 </tr>
-// //               </thead>
-// //               <tbody className="bg-white divide-y divide-gray-200">
-// //                 {filteredSuperAdminData.length === 0 ? (
-// //                   <tr>
-// //                     <td colSpan={5} className="px-4 lg:px-6 py-12 text-center">
-// //                       <div className="flex flex-col items-center justify-center space-y-3">
-                     
-// //                         <div className="text-gray-500 text-sm">
-// //                           {searchTerm
-// //                             ? "No matching role permissions found."
-// //                             : "No role permissions assigned yet. Use the form above to assign permissions to roles."}
-// //                         </div>
-// //                       </div>
-// //                     </td>
-// //                   </tr>
-// //                 ) : (
-// //                   filteredSuperAdminData.map((roleData: any, index) => (
-// //                     <tr
-// //                       key={`super-${roleData.super_admin_role_name}-${roleData.module_name}-${index}`}
-// //                       className="hover:bg-gray-50 transition-colors duration-150"
-// //                     >
-// //                       <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
-// //                         {index + 1}
-// //                       </td>
-// //                       <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
-// //                         <Badge variant="white">
-// //                           {roleData.super_admin_role_name}
-// //                         </Badge>
-// //                       </td>
-// //                       <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
-// //                         <Badge variant="white">{roleData.module_name}</Badge>
-// //                       </td>
-// //                       <td className="px-3 lg:px-6 py-4">
-// //                         <div className="relative">
-// //                           <button
-// //                             data-dropdown-toggle
-// //                             onClick={() =>
-// //                               toggleDropdown(`super-${index}`, "actions")
-// //                             }
-// //                             className="inline-flex justify-between items-center min-w-[120px] px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
-// //                           >
-// //                             <span className="flex items-center">
-// //                               <Badge variant="green" size="sm">
-// //                                 {roleData.actions.length}
-// //                               </Badge>
-// //                               <span className="text-sm ml-2">Actions</span>
-// //                             </span>
-// //                             <ChevronDown
-// //                               size={16}
-// //                               className={`ml-2 flex-shrink-0 transition-transform duration-200 ${
-// //                                 expandedDropdown?.id === `super-${index}` &&
-// //                                 expandedDropdown?.type === "actions"
-// //                                   ? "transform rotate-180"
-// //                                   : ""
-// //                               }`}
-// //                             />
-// //                           </button>
-// //                           {expandedDropdown?.id === `super-${index}` &&
-// //                             expandedDropdown?.type === "actions" && (
-// //                               <div
-// //                                 data-dropdown-content
-// //                                 className="absolute z-30 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200"
-// //                               >
-// //                                 <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
-// //                                   <span className="text-sm font-semibold text-gray-900">
-// //                                     Actions for {roleData.module_name} (
-// //                                     {roleData.actions.length})
-// //                                   </span>
-// //                                 </div>
-// //                                 <div className="p-3 max-h-60 overflow-y-auto">
-// //                                   <div className="space-y-2">
-// //                                     {roleData.actions.map(
-// //                                       (action: any, actionIdx: number) => (
-// //                                         <div
-// //                                           key={actionIdx}
-// //                                           className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150"
-// //                                         >
-// //                                           <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0"></div>
-// //                                           <div className="flex-1 min-w-0">
-// //                                             <span className="text-sm font-medium text-gray-900 block">
-// //                                               {action.action_name}
-// //                                             </span>
-// //                                             <span className="text-xs text-gray-500">
-// //                                               Sub Actions:{" "}
-// //                                               {action.sub_actions.length}
-// //                                             </span>
-// //                                           </div>
-// //                                         </div>
-// //                                       )
-// //                                     )}
-// //                                   </div>
-// //                                 </div>
-// //                               </div>
-// //                             )}
-// //                         </div>
-// //                       </td>
-
-// //                       <td className="px-3 lg:px-6 py-4">
-// //                         <div className="relative">
-// //                           <button
-// //                             data-dropdown-toggle
-// //                             onClick={() =>
-// //                               toggleDropdown(`super-${index}`, "subactions")
-// //                             }
-// //                             className="inline-flex justify-between items-center min-w-[140px] px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
-// //                           >
-// //                             <span className="flex items-center">
-// //                               <Badge variant="orange" size="sm">
-// //                                 {roleData.actions.reduce(
-// //                                   (total: number, action: any) =>
-// //                                     total + action.sub_actions.length,
-// //                                   0
-// //                                 )}
-// //                               </Badge>
-// //                               <span className="text-sm ml-2">Sub Actions</span>
-// //                             </span>
-// //                             <ChevronDown
-// //                               size={16}
-// //                               className={`ml-2 flex-shrink-0 transition-transform duration-200 ${
-// //                                 expandedDropdown?.id === `super-${index}` &&
-// //                                 expandedDropdown?.type === "subactions"
-// //                                   ? "transform rotate-180"
-// //                                   : ""
-// //                               }`}
-// //                             />
-// //                           </button>
-// //                           {expandedDropdown?.id === `super-${index}` &&
-// //                             expandedDropdown?.type === "subactions" && (
-// //                               <div
-// //                                 data-dropdown-content
-// //                                 className="absolute z-30 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200"
-// //                               >
-// //                                 <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
-// //                                   <span className="text-sm font-semibold text-gray-900">
-// //                                     All Sub Actions (
-// //                                     {roleData.actions.reduce(
-// //                                       (total: number, action: any) =>
-// //                                         total + action.sub_actions.length,
-// //                                       0
-// //                                     )}
-// //                                     )
-// //                                   </span>
-// //                                 </div>
-// //                                 <div className="p-3 max-h-60 overflow-y-auto">
-// //                                   <div className="space-y-3">
-// //                                     {roleData.actions.map(
-// //                                       (action: any, actionIdx: number) => (
-// //                                         <div
-// //                                           key={actionIdx}
-// //                                           className="border-b border-gray-100 pb-2 last:border-b-0"
-// //                                         >
-// //                                           <div className="text-xs font-medium text-gray-600 mb-2">
-// //                                             {action.action_name}
-// //                                           </div>
-// //                                           <div className="space-y-1">
-// //                                             {action.sub_actions.map(
-// //                                               (
-// //                                                 subAction: any,
-// //                                                 subIdx: number
-// //                                               ) => (
-// //                                                 <div
-// //                                                   key={subIdx}
-// //                                                   className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150"
-// //                                                 >
-// //                                                   <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-// //                                                   <div className="flex-1 min-w-0">
-// //                                                     <span className="text-sm font-medium text-gray-900 block">
-// //                                                       {
-// //                                                         subAction.sub_action_name
-// //                                                       }
-// //                                                     </span>
-// //                                                     <span className="text-xs text-gray-500">
-// //                                                       Action:{" "}
-// //                                                       {action.action_name}
-// //                                                     </span>
-// //                                                   </div>
-// //                                                 </div>
-// //                                               )
-// //                                             )}
-// //                                           </div>
-// //                                         </div>
-// //                                       )
-// //                                     )}
-// //                                   </div>
-// //                                 </div>
-// //                               </div>
-// //                             )}
-// //                         </div>
-// //                       </td>
-// //                     </tr>
-// //                   ))
-// //                 )}
-// //               </tbody>
-// //             </table>
-// //           </div>
-// //         </div>
-
-// //         <Modal
-// //           isOpen={isCreateModalOpen}
-// //           onClose={() => setIsCreateModalOpen(false)}
-// //           title="Create New Role"
-// //           size="md"
-// //         >
-// //           <CreateRoleForm
-// //             onSubmit={handleCreateRole}
-// //             onCancel={() => setIsCreateModalOpen(false)}
-// //             isLoading={isCreatingRole}
-// //             title="Create New Role"
-// //             submitButtonText="Create Role"
-// //           />
-// //         </Modal>
-// //       </div>
-// //     </div>
-// //   );
-// // };
-
-// // export default SuperRoleManagement;
-// import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-// import { ChevronDown, Check, PlusCircle, X } from "lucide-react";
-// import React from "react";
-// import { UseSuperAdminRoles } from "../../../hooks/useSuperAdminRoles";
-// import CreateRoleForm from "../../MasterAdmin/Roles/CreateRoleForm";
-// import Modal from "../../../component/common/ui/Modal";
-// import { Badge } from "../../../component/common/ui/Badge";
-// import { DropdownButton } from "../../../component/common/ui/DropdownButton";
-
-// const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
-//   isReadOnly,
-// }) => {
-//   const {
-//     superAdminRoleMappings,
-//     message,
-//     setMessage,
-//     isCreatingRole,
-//     isLoading,
-//     MasterAdminRoleMappings,
-//     availableSuperAdminRoles,
-//     handleCreateRole,
-//     handleCreateSuperAdminRoleMapping,
-//     moduleOptions,
-//     getActionOptionsForModules,
-//     getSubActionOptionsForModulesAndActions,
-//   } = UseSuperAdminRoles();
-
-//   // Form state
-//   const [selectedSuperAdminRole, setSelectedSuperAdminRole] = useState("");
-//   const [selectedModules, setSelectedModules] = useState<string[]>([]);
-//   const [selectedActions, setSelectedActions] = useState("");
-//   const [selectedSubActions, setSelectedSubActions] = useState<string[]>([]);
-
-//   // UI state
-//   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-//   const [isModuleDropdownOpen, setIsModuleDropdownOpen] = useState(false);
-//   const [, setIsActionDropdownOpen] = useState(false);
-//   const [isSubActionDropdownOpen, setIsSubActionDropdownOpen] = useState(false);
-//   const [expandedDropdown, setExpandedDropdown] = useState<{
-//     id: string;
-//     type: string;
-//   } | null>(null);
-//   const [searchTerm] = useState("");
-
-//   // Smart positioning state
-//   const [dropdownPosition, setDropdownPosition] = useState<{
-//     top?: number;
-//     bottom?: number;
-//     left: number;
-//     openUpward: boolean;
-//   }>({ left: 0, openUpward: false });
-
-//   // Refs
-//   const moduleDropdownRef = useRef<HTMLDivElement>(null);
-//   const actionDropdownRef = useRef<HTMLDivElement>(null);
-//   const subActionDropdownRef = useRef<HTMLDivElement>(null);
-//   const tableContainerRef = useRef<HTMLDivElement>(null);
-//   const dropdownButtonRefs = useRef<Record<string, HTMLButtonElement>>({});
-
-//   // Calculate smart dropdown position
-//   const calculateDropdownPosition = useCallback((buttonElement: HTMLButtonElement) => {
-//     const buttonRect = buttonElement.getBoundingClientRect();
-//     const tableContainer = tableContainerRef.current;
-    
-//     if (!tableContainer) return { left: 0, openUpward: false };
-    
-//     const containerRect = tableContainer.getBoundingClientRect();
-//     const dropdownHeight = 350; // Approximate dropdown height
-//     const spaceBelow = containerRect.bottom - buttonRect.bottom;
-//     const spaceAbove = buttonRect.top - containerRect.top;
-    
-//     // Calculate position relative to the table container
-//     const relativeLeft = buttonRect.left - containerRect.left;
-    
-//     // Determine if dropdown should open upward
-//     const shouldOpenUpward = spaceBelow < dropdownHeight && spaceAbove > dropdownHeight;
-    
-//     if (shouldOpenUpward) {
-//       return {
-//         bottom: containerRect.bottom - buttonRect.top + 8,
-//         left: relativeLeft,
-//         openUpward: true,
-//       };
-//     } else {
-//       return {
-//         top: buttonRect.bottom - containerRect.top + 8,
-//         left: relativeLeft,
-//         openUpward: false,
-//       };
-//     }
-//   }, []);
-
-//   // Memoized computed values
-//   const availableActions = useMemo(
-//     () => getActionOptionsForModules(selectedModules),
-//     [getActionOptionsForModules, selectedModules]
-//   );
-
-//   const availableSubActions = useMemo(
-//     () =>
-//       getSubActionOptionsForModulesAndActions(selectedModules, selectedActions),
-//     [getSubActionOptionsForModulesAndActions, selectedModules, selectedActions]
-//   );
-
-// const masterAdminFlattenedData = useMemo(() => {
-//   const grouped = new Map<string, any>();
-
-//   MasterAdminRoleMappings?.forEach((moduleMapping: any) => {
-//     // module_data is an object, not an array
-//     const roleData = moduleMapping?.module_data;
-
-    
-//     if (roleData && typeof roleData === 'object' && roleData.role_id) {
-//       const groupKey = `${roleData.role_id}-${moduleMapping.module_name}`;
-
-//       if (!grouped.has(groupKey)) {
-//         grouped.set(groupKey, {
-//           role_id: roleData.role_id,
-//           role_name: roleData.role_name,
-//           status: roleData.status,
-//           assignment_date: moduleMapping.assignment_date,
-//           module_name: moduleMapping.module_name,
-//           actions: [],
-//         });
-//       }
-
-//       const existingGroup = grouped.get(groupKey)!;
-      
-//       // Process actions array from the roleData
-//       if (roleData.actions && Array.isArray(roleData.actions)) {
-//         roleData.actions.forEach((action: any) => {
-//           existingGroup.actions.push({
-//             action_id: action.action_id,
-//             action_name: action.action_name,
-//             sub_actions: Array.isArray(action.all_sub_actions) ? action.all_sub_actions : [],
-//           });
-//         });
-//       }
-//     }
-//   });
-
-//   return Array.from(grouped.values());
-// }, [MasterAdminRoleMappings]);
-
-//   const superAdminFlattenedData = useMemo(() => {
-//     const grouped = new Map<string, any>();
-
-//     superAdminRoleMappings?.forEach((mapping) => {
-//       const groupKey = `${mapping.super_admin_role_name}-${mapping.module_name}`;
-
-//       if (!grouped.has(groupKey)) {
-//         grouped.set(groupKey, {
-//           super_admin_role_name: mapping.super_admin_role_name,
-//           module_name: mapping.module_name,
-//           actions: [],
-//         });
-//       }
-
-//       const existingGroup = grouped.get(groupKey)!;
-
-//       // Check if action already exists
-//       let existingAction = existingGroup.actions.find(
-//         (action: any) => action.action_name === mapping.action_name
-//       );
-
-//       if (!existingAction) {
-//         existingAction = {
-//           action_name: mapping.action_name,
-//           sub_actions: [],
-//         };
-//         existingGroup.actions.push(existingAction);
-//       }
-
-//       // Add sub-actions to the action
-//       mapping.sub_actions.forEach((subAction) => {
-//         if (
-//           !existingAction.sub_actions.find(
-//             (sa: any) => sa.sub_action_id === subAction.sub_action_id
-//           )
-//         ) {
-//           existingAction.sub_actions.push({
-//             ...subAction,
-//             parent_action: mapping.action_name,
-//           });
-//         }
-//       });
-//     });
-
-//     return Array.from(grouped.values());
-//   }, [superAdminRoleMappings]);
-
-//   const filteredSuperAdminData = useMemo(() => {
-//     if (!searchTerm) return superAdminFlattenedData;
-//     return superAdminFlattenedData.filter(
-//       (item: any) =>
-//         item.super_admin_role_name
-//           .toLowerCase()
-//           .includes(searchTerm.toLowerCase()) ||
-//         item.module_name.toLowerCase().includes(searchTerm.toLowerCase())
-//     );
-//   }, [superAdminFlattenedData, searchTerm]);
-
-//   const filteredMasterData = useMemo(() => {
-//     if (!searchTerm) return masterAdminFlattenedData;
-//     return masterAdminFlattenedData.filter(
-//       (item: any) =>
-//         item.role_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//         item.module_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//         item.action_name.toLowerCase().includes(searchTerm.toLowerCase())
-//     );
-//   }, [masterAdminFlattenedData, searchTerm]);
-
-//   // Callbacks
-//   const handleModuleToggle = useCallback((moduleId: string) => {
-//     setSelectedModules((prev) => {
-//       if (prev.includes(moduleId)) {
-//         return prev.filter((id) => id !== moduleId);
-//       } else {
-//         return [...prev, moduleId];
-//       }
-//     });
-//   }, []);
-
-//   const handleSubActionToggle = useCallback((subActionId: string) => {
-//     setSelectedSubActions((prev) => {
-//       if (prev.includes(subActionId)) {
-//         return prev.filter((id) => id !== subActionId);
-//       } else {
-//         return [...prev, subActionId];
-//       }
-//     });
-//   }, []);
-
-//   const resetForm = useCallback(() => {
-//     setSelectedSuperAdminRole("");
-//     setSelectedModules([]);
-//     setSelectedActions("");
-//     setSelectedSubActions([]);
-//     setIsModuleDropdownOpen(false);
-//     setIsActionDropdownOpen(false);
-//     setIsSubActionDropdownOpen(false);
-//   }, []);
-
-//   const submitPermission = useCallback(async () => {
-//     if (
-//       !selectedSuperAdminRole ||
-//       selectedModules.length === 0 ||
-//       !selectedActions
-//     ) {
-//       setMessage("Please select super admin role, modules, and actions");
-//       return;
-//     }
-
-//     const superAdminRoleId = parseInt(selectedSuperAdminRole);
-
-//     const success = await handleCreateSuperAdminRoleMapping(
-//       superAdminRoleId,
-//       selectedModules,
-//       selectedActions,
-//       selectedSubActions
-//     );
-
-//     if (success) {
-//       resetForm();
-//     }
-//   }, [
-//     selectedSuperAdminRole,
-//     selectedModules,
-//     selectedActions,
-//     selectedSubActions,
-//     handleCreateSuperAdminRoleMapping,
-//     resetForm,
-//     setMessage,
-//   ]);
-
-//   const toggleDropdown = useCallback(
-//     (id: number | string, type: "actions" | "subactions") => {
-//       const dropdownId = `${id}`;
-//       const newExpandedDropdown = expandedDropdown?.id === dropdownId && expandedDropdown?.type === type
-//         ? null
-//         : { id: dropdownId, type };
-      
-//       setExpandedDropdown(newExpandedDropdown);
-      
-//       // Calculate position for table dropdowns
-//       if (newExpandedDropdown) {
-//         const buttonKey = `${dropdownId}-${type}`;
-//         const buttonElement = dropdownButtonRefs.current[buttonKey];
-//         if (buttonElement) {
-//           const position = calculateDropdownPosition(buttonElement);
-//           setDropdownPosition(position);
-//         }
-//       }
-//     },
-//     [expandedDropdown, calculateDropdownPosition]
-//   );
-
-//   // Effects
-//   useEffect(() => {
-//     setSelectedActions("");
-//     setSelectedSubActions([]);
-//     setIsActionDropdownOpen(false);
-//     setIsSubActionDropdownOpen(false);
-//   }, [selectedModules]);
-
-//   useEffect(() => {
-//     setSelectedSubActions([]);
-//     setIsSubActionDropdownOpen(false);
-//   }, [selectedActions]);
-
-//   // Close dropdown on scroll
-//   useEffect(() => {
-//     const handleScroll = () => {
-//       if (expandedDropdown) {
-//         setExpandedDropdown(null);
-//       }
-//     };
-
-//     const tableContainer = tableContainerRef.current;
-//     if (tableContainer) {
-//       tableContainer.addEventListener('scroll', handleScroll);
-//       return () => tableContainer.removeEventListener('scroll', handleScroll);
-//     }
-//   }, [expandedDropdown]);
-
-//   // Click outside handler
-//   useEffect(() => {
-//     const handleClickOutside = (event: MouseEvent) => {
-//       const target = event.target as HTMLElement;
-
-//       // Handle form dropdowns
-//       if (
-//         moduleDropdownRef.current &&
-//         !moduleDropdownRef.current.contains(target)
-//       ) {
-//         setIsModuleDropdownOpen(false);
-//       }
-//       if (
-//         actionDropdownRef.current &&
-//         !actionDropdownRef.current.contains(target)
-//       ) {
-//         setIsActionDropdownOpen(false);
-//       }
-//       if (
-//         subActionDropdownRef.current &&
-//         !subActionDropdownRef.current.contains(target)
-//       ) {
-//         setIsSubActionDropdownOpen(false);
-//       }
-
-//       // Handle table dropdowns with smart positioning
-//       if (expandedDropdown && tableContainerRef.current) {
-//         const isClickInsideTable = tableContainerRef.current.contains(target);
-        
-//         // Check if click is on a dropdown button
-//         const isClickOnDropdownButton = Object.values(dropdownButtonRefs.current).some(
-//           button => button && button.contains(target)
-//         );
-        
-//         // Check if click is inside dropdown content
-//         const isDropdownClick =
-//           target.closest("[data-dropdown-toggle]") ||
-//           target.closest("[data-dropdown-content]") ||
-//           target.closest(".dropdown-content");
-        
-//         if (!isDropdownClick && (!isClickInsideTable || !isClickOnDropdownButton)) {
-//           setExpandedDropdown(null);
-//         }
-//       }
-//     };
-
-//     document.addEventListener("mousedown", handleClickOutside);
-//     return () => document.removeEventListener("mousedown", handleClickOutside);
-//   }, [expandedDropdown]);
-
-//   useEffect(() => {
-//     if (message) {
-//       const timer = setTimeout(() => setMessage(""), 5000);
-//       return () => clearTimeout(timer);
-//     }
-//   }, [message, setMessage]);
-
-//   return (
-//     <div className=" bg-gradient-to-br from-gray-50 to-gray-100 p-2 sm:p-4 lg:p-6">
-//       <div className="max-w-full mx-auto space-y-6 lg:space-y-8">
-//         {/* Header Section */}
-//         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6">
-//           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-//             <div className="flex-1"></div>
-//             <div className="flex flex-col sm:flex-row gap-3">
-//               <button
-//                 onClick={() => setIsCreateModalOpen(true)}
-//                 className="flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 hover:scale-105 hover:shadow-lg disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed disabled:transform-none font-medium"
-//                 disabled={isReadOnly}
-//               >
-//                 <PlusCircle size={18} className="mr-2 flex-shrink-0" />
-//                 <span className="whitespace-nowrap">Create Role</span>
-//               </button>
-//             </div>
-//           </div>
-
-//           {/* Message Display */}
-//           {message && (
-//             <div
-//               className={`mt-4 p-4 rounded-lg border-l-4 ${
-//                 message.includes("Failed") || message.includes("failed")
-//                   ? "bg-red-50 text-red-700 border-red-400"
-//                   : "bg-green-50 text-green-700 border-green-400"
-//               }`}
-//             >
-//               <div className="flex items-start">
-//                 <div className="flex-1 text-sm font-medium">{message}</div>
-//                 <button
-//                   onClick={() => setMessage("")}
-//                   className="ml-2 text-current opacity-70 hover:opacity-100"
-//                 >
-//                   <X size={16} />
-//                 </button>
-//               </div>
-//             </div>
-//           )}
-
-//           {/* Form Section */}
-//           <div className="mt-2 space-y-6">
-//             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
-//               {/* Super Admin Role Dropdown */}
-//               <div className="space-y-2">
-//                 <label className="block text-sm font-medium text-gray-700">
-//                   Super Admin Role
-//                   <span className="text-xs text-gray-500 font-normal ml-2">
-//                     ({availableSuperAdminRoles.length} available)
-//                   </span>
-//                 </label>
-//                 <div className="relative">
-//                   <select
-//                     value={selectedSuperAdminRole}
-//                     onChange={(e) => setSelectedSuperAdminRole(e.target.value)}
-//                     disabled={isReadOnly || isLoading}
-//                     className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white text-sm transition-all duration-200 ${
-//                       selectedSuperAdminRole
-//                         ? "border-blue-300 bg-blue-50"
-//                         : "border-gray-300 hover:border-gray-400"
-//                     } disabled:bg-gray-100 disabled:cursor-not-allowed`}
-//                   >
-//                     <option value="">Choose Super Admin Role...</option>
-//                     {availableSuperAdminRoles.map((role) => (
-//                       <option key={role.role_id} value={role.role_id}>
-//                         {role.role_name}
-//                       </option>
-//                     ))}
-//                   </select>
-//                   <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
-//                 </div>
-//                 {selectedSuperAdminRole && (
-//                   <div className="mt-2">
-//                     <Badge variant="blue" size="sm">
-//                       ✓{" "}
-//                       {
-//                         availableSuperAdminRoles.find(
-//                           (r) => r.role_id.toString() === selectedSuperAdminRole
-//                         )?.role_name
-//                       }
-//                     </Badge>
-//                   </div>
-//                 )}
-//               </div>
-
-//               {/* Module Multi-Select Dropdown */}
-//               <div ref={moduleDropdownRef} className="space-y-2">
-//                 <label className="block text-sm font-medium text-gray-700">
-//                   Select Modules
-//                   <span className="text-xs text-gray-500 font-normal ml-2">
-//                     ({moduleOptions.length} available)
-//                   </span>
-//                 </label>
-//                 <div className="relative">
-//                   <DropdownButton
-//                     onClick={() =>
-//                       setIsModuleDropdownOpen(!isModuleDropdownOpen)
-//                     }
-//                     isOpen={isModuleDropdownOpen}
-//                     disabled={
-//                       !selectedSuperAdminRole || isReadOnly || isLoading
-//                     }
-//                   >
-//                     {selectedModules.length === 0
-//                       ? "Choose Modules..."
-//                       : selectedModules.length === 1
-//                       ? selectedModules[0]
-//                       : `${selectedModules.length} modules selected`}
-//                   </DropdownButton>
-
-//                   {isModuleDropdownOpen && moduleOptions.length > 0 && (
-//                     <div className="absolute z-20 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-auto">
-//                       <div className="p-2">
-//                         {moduleOptions.map((module) => (
-//                           <label
-//                             key={module.id}
-//                             className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer rounded-md transition-colors duration-150"
-//                           >
-//                             <input
-//                               type="checkbox"
-//                               checked={selectedModules.includes(module.id)}
-//                               onChange={() => handleModuleToggle(module.id)}
-//                               className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mr-3 flex-shrink-0"
-//                             />
-//                             <span className="text-sm text-gray-700 flex-1 truncate">
-//                               {module.label}
-//                             </span>
-//                             {selectedModules.includes(module.id) && (
-//                               <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />
-//                             )}
-//                           </label>
-//                         ))}
-//                       </div>
-//                     </div>
-//                   )}
-//                 </div>
-//                 {selectedModules.length > 0 && (
-//                   <div className="flex flex-wrap gap-1 mt-2">
-//                     {selectedModules.slice(0, 3).map((moduleName, index) => (
-//                       <Badge key={index} variant="blue" size="sm">
-//                         {moduleName}
-//                       </Badge>
-//                     ))}
-//                     {selectedModules.length > 3 && (
-//                       <Badge variant="blue" size="sm">
-//                         +{selectedModules.length - 3} more
-//                       </Badge>
-//                     )}
-//                   </div>
-//                 )}
-//               </div>
-
-//               {/* Action Dropdown */}
-//               <div className="space-y-2">
-//                 <label className="block text-sm font-medium text-gray-700">
-//                   Select Action
-//                   <span className="text-xs text-gray-500 font-normal ml-2">
-//                     ({availableActions.length} available)
-//                   </span>
-//                 </label>
-//                 <div className="relative">
-//                   <select
-//                     value={selectedActions}
-//                     onChange={(e) => setSelectedActions(e.target.value)}
-//                     disabled={
-//                       selectedModules.length === 0 || isReadOnly || isLoading
-//                     }
-//                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed text-sm transition-all duration-200 hover:border-gray-400"
-//                   >
-//                     <option value="">Choose Action...</option>
-//                     {availableActions.map((action) => (
-//                       <option key={action.id} value={action.id}>
-//                         {action.label}
-//                       </option>
-//                     ))}
-//                   </select>
-//                   <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
-//                 </div>
-//                 {selectedActions && (
-//                   <div className="mt-2">
-//                     <Badge variant="green" size="sm">
-//                       {selectedActions}
-//                     </Badge>
-//                   </div>
-//                 )}
-//               </div>
-
-//               {/* Sub-Action Multi-Select Dropdown */}
-//               <div ref={subActionDropdownRef} className="space-y-2">
-//                 <label className="block text-sm font-medium text-gray-700">
-//                   Select Sub Actions
-//                   <span className="text-xs text-gray-500 font-normal ml-2">
-//                     ({availableSubActions.length} available)
-//                   </span>
-//                 </label>
-//                 <div className="relative">
-//                   <DropdownButton
-//                     onClick={() =>
-//                       setIsSubActionDropdownOpen(!isSubActionDropdownOpen)
-//                     }
-//                     isOpen={isSubActionDropdownOpen}
-//                     disabled={!selectedActions || isReadOnly || isLoading}
-//                   >
-//                     {selectedSubActions.length === 0
-//                       ? "Choose Sub Actions..."
-//                       : selectedSubActions.length === 1
-//                       ? selectedSubActions[0]
-//                       : `${selectedSubActions.length} sub actions selected`}
-//                   </DropdownButton>
-
-//                   {isSubActionDropdownOpen &&
-//                     availableSubActions.length > 0 && (
-//                       <div className="absolute z-20 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-auto">
-//                         <div className="p-2">
-//                           {availableSubActions.map((subAction) => (
-//                             <label
-//                               key={`${subAction.parent_action}-${subAction.id}`}
-//                               className="flex items-start px-3 py-2 hover:bg-gray-50 cursor-pointer rounded-md transition-colors duration-150"
-//                             >
-//                               <input
-//                                 type="checkbox"
-//                                 checked={selectedSubActions.includes(
-//                                   subAction.id
-//                                 )}
-//                                 onChange={() =>
-//                                   handleSubActionToggle(subAction.id)
-//                                 }
-//                                 className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mr-3 mt-0.5 flex-shrink-0"
-//                               />
-//                               <div className="flex-1 min-w-0">
-//                                 <span className="text-sm text-gray-700 block truncate">
-//                                   {subAction.label}
-//                                 </span>
-//                               </div>
-//                               {selectedSubActions.includes(subAction.id) && (
-//                                 <Check className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-//                               )}
-//                             </label>
-//                           ))}
-//                         </div>
-//                       </div>
-//                     )}
-//                 </div>
-//                 {selectedSubActions.length > 0 && (
-//                   <div className="flex flex-wrap gap-1 mt-2">
-//                     {selectedSubActions
-//                       .slice(0, 2)
-//                       .map((subActionName, index) => (
-//                         <Badge key={index} variant="orange" size="sm">
-//                           {subActionName}
-//                         </Badge>
-//                       ))}
-//                     {selectedSubActions.length > 2 && (
-//                       <Badge variant="orange" size="sm">
-//                         +{selectedSubActions.length - 2} more
-//                       </Badge>
-//                     )}
-//                   </div>
-//                 )}
-//               </div>
-//             </div>
-
-//             {/* Submit Button */}
-//             <div className="flex flex-col sm:flex-row gap-3 ">
-//               <div className="flex-1" />
-//               <button
-//                 onClick={resetForm}
-//                 className="px-5 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium"
-//               >
-//                 Reset Form
-//               </button>
-//               <button
-//                 onClick={submitPermission}
-//                 disabled={
-//                   !selectedSuperAdminRole ||
-//                   selectedModules.length === 0 ||
-//                   !selectedActions ||
-//                   isReadOnly ||
-//                   isLoading
-//                 }
-//                 className="px-5 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg font-medium"
-//               >
-//                 {isLoading ? "Creating Mapping..." : "Create Role Mapping"}
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Master Admin Role Permissions Table */}
-//         <div 
-//           ref={tableContainerRef}
-//           className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative"
-//         >
-//           <div className="px-4 lg:px-6 py-4 border-b border-gray-200 bg-gray-50">
-//             <h3 className="text-xl font-semibold text-gray-900">
-//               Default Master roles available for assignment. 
-//             </h3>
-//           </div>
-
-//           <div className="overflow-x-auto">
-//             <div className="max-h-[70vh] overflow-y-auto">
-//               <table className="w-full divide-y divide-gray-200">
-//                 <thead className="bg-gray-50 sticky top-0 z-10">
-//                   <tr>
-//                     <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       #
-//                     </th>
-//                     <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Role
-//                     </th>
-//                     <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Module
-//                     </th>
-//                     <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Actions
-//                     </th>
-//                     <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Sub Actions
-//                     </th>
-//                   </tr>
-//                 </thead>
-//                 <tbody className="bg-white divide-y divide-gray-200">
-//                   {filteredMasterData.length === 0 ? (
-//                     <tr>
-//                       <td colSpan={7} className="px-4 lg:px-6 py-12 text-center">
-//                         <div className="flex flex-col items-center justify-center space-y-3">
-//                           <div className="text-gray-500 text-sm">
-//                             {searchTerm
-//                               ? "Once a module is assigned, you will be able to access the Master Admin role."
-//                                : "No modules have been assigned to your Account. Please contact the Master User for access."}
-//                           </div>
-//                         </div>
-//                       </td>
-//                     </tr>
-//                   ) : (
-//                     filteredMasterData.map((roleData: any, index) => (
-//                       <tr
-//                         key={`master-${roleData.role_id}-${roleData.module_name}-${roleData.action_name}-${index}`}
-//                         className="hover:bg-gray-50 transition-colors duration-150"
-//                       >
-//                         <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
-//                           {index + 1}
-//                         </td>
-//                         <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
-//                           <Badge variant="white">{roleData.role_name}</Badge>
-//                         </td>
-//                         <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
-//                           <Badge variant="white">{roleData.module_name}</Badge>
-//                         </td>
-//                         <td className="px-3 lg:px-6 py-4">
-//                           <div className="relative">
-//                             <button
-//                               ref={(el) => {
-//                                 if (el) dropdownButtonRefs.current[`master-${index}-actions`] = el;
-//                               }}
-//                               data-dropdown-toggle
-//                               onClick={() =>
-//                                 toggleDropdown(`master-${index}`, "actions")
-//                               }
-//                               className="inline-flex justify-between items-center min-w-[120px] px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
-//                             >
-//                               <span className="flex items-center">
-//                                 <Badge variant="green" size="sm">
-//                                   {roleData.actions.length}
-//                                 </Badge>
-//                                 <span className="text-sm ml-2">Actions</span>
-//                               </span>
-//                               <ChevronDown
-//                                 size={16}
-//                                 className={`ml-2 flex-shrink-0 transition-transform duration-200 ${
-//                                   expandedDropdown?.id === `master-${index}` &&
-//                                   expandedDropdown?.type === "actions"
-//                                     ? "transform rotate-180"
-//                                     : ""
-//                                 }`}
-//                               />
-//                             </button>
-//                           </div>
-//                         </td>
-
-//                         <td className="px-3 lg:px-6 py-4">
-//                           <div className="relative">
-//                             <button
-//                               ref={(el) => {
-//                                 if (el) dropdownButtonRefs.current[`master-${index}-subactions`] = el;
-//                               }}
-//                               data-dropdown-toggle
-//                               onClick={() =>
-//                                 toggleDropdown(`master-${index}`, "subactions")
-//                               }
-//                               className="inline-flex justify-between items-center min-w-[140px] px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
-//                             >
-//                               <span className="flex items-center">
-//                                 <Badge variant="orange" size="sm">
-//                                   {roleData.actions.reduce(
-//                                     (total: number, action: any) =>
-//                                       total + action.sub_actions.length,
-//                                     0
-//                                   )}
-//                                 </Badge>
-//                                 <span className="text-sm ml-2">Sub Actions</span>
-//                               </span>
-//                               <ChevronDown
-//                                 size={16}
-//                                 className={`ml-2 flex-shrink-0 transition-transform duration-200 ${
-//                                   expandedDropdown?.id === `master-${index}` &&
-//                                   expandedDropdown?.type === "subactions"
-//                                     ? "transform rotate-180"
-//                                     : ""
-//                                 }`}
-//                               />
-//                             </button>
-//                           </div>
-//                         </td>
-//                       </tr>
-//                     ))
-//                   )}
-//                 </tbody>
-//               </table>
-//             </div>
-//           </div>
-
-//           {/* Smart positioned dropdowns for Master Admin table */}
-//           {expandedDropdown?.id.startsWith('master-') && expandedDropdown?.type === "actions" && (
-//             <div 
-//               className="dropdown-content absolute z-50 w-80 bg-white rounded-xl shadow-2xl border border-gray-200"
-//               style={{
-//                 top: dropdownPosition.openUpward ? 'auto' : dropdownPosition.top,
-//                 bottom: dropdownPosition.openUpward ? dropdownPosition.bottom : 'auto',
-//                 left: dropdownPosition.left,
-//                 maxWidth: 'calc(100vw - 2rem)',
-//               }}
-//             >
-//               {(() => {
-//                 const index = parseInt(expandedDropdown.id.replace('master-', ''));
-//                 const roleData = filteredMasterData[index];
-//                 return (
-//                   <>
-//                     <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
-//                       <span className="text-sm font-semibold text-gray-900">
-//                         Actions for {roleData?.module_name} ({roleData?.actions.length})
-//                       </span>
-//                     </div>
-//                     <div className="p-3 max-h-60 overflow-y-auto">
-//                       <div className="space-y-2">
-//                         {roleData?.actions.map((action: any, actionIdx: number) => (
-//                           <div
-//                             key={actionIdx}
-//                             className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150"
-//                           >
-//                             <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0"></div>
-//                             <div className="flex-1 min-w-0">
-//                               <span className="text-sm font-medium text-gray-900 block">
-//                                 {action.action_name}
-//                               </span>
-//                               <span className="text-xs text-gray-500">
-//                                 Sub Actions: {action.sub_actions.length}
-//                               </span>
-//                             </div>
-//                           </div>
-//                         ))}
-//                       </div>
-//                     </div>
-//                   </>
-//                 );
-//               })()}
-//             </div>
-//           )}
-
-//           {expandedDropdown?.id.startsWith('master-') && expandedDropdown?.type === "subactions" && (
-//             <div 
-//               className="dropdown-content absolute z-50 w-80 bg-white rounded-xl shadow-2xl border border-gray-200"
-//               style={{
-//                 top: dropdownPosition.openUpward ? 'auto' : dropdownPosition.top,
-//                 bottom: dropdownPosition.openUpward ? dropdownPosition.bottom : 'auto',
-//                 left: dropdownPosition.left,
-//                 maxWidth: 'calc(100vw - 2rem)',
-//               }}
-//             >
-//               {(() => {
-//                 const index = parseInt(expandedDropdown.id.replace('master-', ''));
-//                 const roleData = filteredMasterData[index];
-//                 return (
-//                   <>
-//                     <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
-//                       <span className="text-sm font-semibold text-gray-900">
-//                         All Sub Actions ({roleData?.actions.reduce((total: number, action: any) => total + action.sub_actions.length, 0)})
-//                       </span>
-//                     </div>
-//                     <div className="p-3 max-h-60 overflow-y-auto">
-//                       <div className="space-y-3">
-//                         {roleData?.actions.map((action: any, actionIdx: number) => (
-//                           <div
-//                             key={actionIdx}
-//                             className="border-b border-gray-100 pb-2 last:border-b-0"
-//                           >
-//                             <div className="text-xs font-medium text-gray-600 mb-2">
-//                               {action.action_name}
-//                             </div>
-//                             <div className="space-y-1">
-//                               {action.sub_actions.map((subAction: any, subIdx: number) => (
-//                                 <div
-//                                   key={subIdx}
-//                                   className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150"
-//                                 >
-//                                   <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-//                                   <div className="flex-1 min-w-0">
-//                                     <span className="text-sm font-medium text-gray-900 block">
-//                                       {subAction.sub_action_name}
-//                                     </span>
-//                                   </div>
-//                                 </div>
-//                               ))}
-//                             </div>
-//                           </div>
-//                         ))}
-//                       </div>
-//                     </div>
-//                   </>
-//                 );
-//               })()}
-//             </div>
-//           )}
-//         </div>
-
-//         {/* Super Admin Role Permissions Table */}
-//         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
-//           <div className="px-4 lg:px-6 py-4 border-b border-gray-200 bg-gray-50">
-//             <h3 className="text-xl font-semibold text-gray-900">
-//               Custom role mappings 
-//             </h3>
-//           </div>
-
-//           <div className="overflow-x-auto">
-//             <div className="max-h-[70vh] overflow-y-auto">
-//               <table className="w-full divide-y divide-gray-200">
-//                 <thead className="bg-gray-50 sticky top-0 z-10">
-//                   <tr>
-//                     <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       #
-//                     </th>
-//                     <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Super Admin Role
-//                     </th>
-//                     <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Module
-//                     </th>
-//                     <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Actions
-//                     </th>
-//                     <th className="px-3 lg:px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-//                       Sub Actions
-//                     </th>
-//                   </tr>
-//                 </thead>
-//                 <tbody className="bg-white divide-y divide-gray-200">
-//                   {filteredSuperAdminData.length === 0 ? (
-//                     <tr>
-//                       <td colSpan={5} className="px-4 lg:px-6 py-12 text-center">
-//                         <div className="flex flex-col items-center justify-center space-y-3">
-//                           <div className="text-gray-500 text-sm">
-//                             {searchTerm
-//                               ? "No matching role permissions found."
-//                               : "No role permissions assigned yet. Use the form above to assign permissions to roles."}
-//                           </div>
-//                         </div>
-//                       </td>
-//                     </tr>
-//                   ) : (
-//                     filteredSuperAdminData.map((roleData: any, index) => (
-//                       <tr
-//                         key={`super-${roleData.super_admin_role_name}-${roleData.module_name}-${index}`}
-//                         className="hover:bg-gray-50 transition-colors duration-150"
-//                       >
-//                         <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
-//                           {index + 1}
-//                         </td>
-//                         <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
-//                           <Badge variant="white">
-//                             {roleData.super_admin_role_name}
-//                           </Badge>
-//                         </td>
-//                         <td className="px-3 lg:px-6 py-4 whitespace-nowrap">
-//                           <Badge variant="white">{roleData.module_name}</Badge>
-//                         </td>
-//                         <td className="px-3 lg:px-6 py-4">
-//                           <div className="relative">
-//                             <button
-//                               ref={(el) => {
-//                                 if (el) dropdownButtonRefs.current[`super-${index}-actions`] = el;
-//                               }}
-//                               data-dropdown-toggle
-//                               onClick={() =>
-//                                 toggleDropdown(`super-${index}`, "actions")
-//                               }
-//                               className="inline-flex justify-between items-center min-w-[120px] px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
-//                             >
-//                               <span className="flex items-center">
-//                                 <Badge variant="green" size="sm">
-//                                   {roleData.actions.length}
-//                                 </Badge>
-//                                 <span className="text-sm ml-2">Actions</span>
-//                               </span>
-//                               <ChevronDown
-//                                 size={16}
-//                                 className={`ml-2 flex-shrink-0 transition-transform duration-200 ${
-//                                   expandedDropdown?.id === `super-${index}` &&
-//                                   expandedDropdown?.type === "actions"
-//                                     ? "transform rotate-180"
-//                                     : ""
-//                                 }`}
-//                               />
-//                             </button>
-//                           </div>
-//                         </td>
-
-//                         <td className="px-3 lg:px-6 py-4">
-//                           <div className="relative">
-//                             <button
-//                               ref={(el) => {
-//                                 if (el) dropdownButtonRefs.current[`super-${index}-subactions`] = el;
-//                               }}
-//                               data-dropdown-toggle
-//                               onClick={() =>
-//                                 toggleDropdown(`super-${index}`, "subactions")
-//                               }
-//                               className="inline-flex justify-between items-center min-w-[140px] px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
-//                             >
-//                               <span className="flex items-center">
-//                                 <Badge variant="orange" size="sm">
-//                                   {roleData.actions.reduce(
-//                                     (total: number, action: any) =>
-//                                       total + action.sub_actions.length,
-//                                     0
-//                                   )}
-//                                 </Badge>
-//                                 <span className="text-sm ml-2">Sub Actions</span>
-//                               </span>
-//                               <ChevronDown
-//                                 size={16}
-//                                 className={`ml-2 flex-shrink-0 transition-transform duration-200 ${
-//                                   expandedDropdown?.id === `super-${index}` &&
-//                                   expandedDropdown?.type === "subactions"
-//                                     ? "transform rotate-180"
-//                                     : ""
-//                                 }`}
-//                               />
-//                             </button>
-//                           </div>
-//                         </td>
-//                       </tr>
-//                     ))
-//                   )}
-//                 </tbody>
-//               </table>
-//             </div>
-//           </div>
-
-//           {/* Smart positioned dropdowns for Super Admin table */}
-//           {expandedDropdown?.id.startsWith('super-') && expandedDropdown?.type === "actions" && (
-//             <div 
-//               className="dropdown-content absolute z-50 w-80 bg-white rounded-xl shadow-2xl border border-gray-200"
-//               style={{
-//                 top: dropdownPosition.openUpward ? 'auto' : dropdownPosition.top,
-//                 bottom: dropdownPosition.openUpward ? dropdownPosition.bottom : 'auto',
-//                 left: dropdownPosition.left,
-//                 maxWidth: 'calc(100vw - 2rem)',
-//               }}
-//             >
-//               {(() => {
-//                 const index = parseInt(expandedDropdown.id.replace('super-', ''));
-//                 const roleData = filteredSuperAdminData[index];
-//                 return (
-//                   <>
-//                     <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
-//                       <span className="text-sm font-semibold text-gray-900">
-//                         Actions for {roleData?.module_name} ({roleData?.actions.length})
-//                       </span>
-//                     </div>
-//                     <div className="p-3 max-h-60 overflow-y-auto">
-//                       <div className="space-y-2">
-//                         {roleData?.actions.map((action: any, actionIdx: number) => (
-//                           <div
-//                             key={actionIdx}
-//                             className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150"
-//                           >
-//                             <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0"></div>
-//                             <div className="flex-1 min-w-0">
-//                               <span className="text-sm font-medium text-gray-900 block">
-//                                 {action.action_name}
-//                               </span>
-//                               <span className="text-xs text-gray-500">
-//                                 Sub Actions: {action.sub_actions.length}
-//                               </span>
-//                             </div>
-//                           </div>
-//                         ))}
-//                       </div>
-//                     </div>
-//                   </>
-//                 );
-//               })()}
-//             </div>
-//           )}
-
-//           {expandedDropdown?.id.startsWith('super-') && expandedDropdown?.type === "subactions" && (
-//             <div 
-//               className="dropdown-content absolute z-50 w-80 bg-white rounded-xl shadow-2xl border border-gray-200"
-//               style={{
-//                 top: dropdownPosition.openUpward ? 'auto' : dropdownPosition.top,
-//                 bottom: dropdownPosition.openUpward ? dropdownPosition.bottom : 'auto',
-//                 left: dropdownPosition.left,
-//                 maxWidth: 'calc(100vw - 2rem)',
-//               }}
-//             >
-//               {(() => {
-//                 const index = parseInt(expandedDropdown.id.replace('super-', ''));
-//                 const roleData = filteredSuperAdminData[index];
-//                 return (
-//                   <>
-//                     <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
-//                       <span className="text-sm font-semibold text-gray-900">
-//                         All Sub Actions ({roleData?.actions.reduce((total: number, action: any) => total + action.sub_actions.length, 0)})
-//                       </span>
-//                     </div>
-//                     <div className="p-3 max-h-60 overflow-y-auto">
-//                       <div className="space-y-3">
-//                         {roleData?.actions.map((action: any, actionIdx: number) => (
-//                           <div
-//                             key={actionIdx}
-//                             className="border-b border-gray-100 pb-2 last:border-b-0"
-//                           >
-//                             <div className="text-xs font-medium text-gray-600 mb-2">
-//                               {action.action_name}
-//                             </div>
-//                             <div className="space-y-1">
-//                               {action.sub_actions.map((subAction: any, subIdx: number) => (
-//                                 <div
-//                                   key={subIdx}
-//                                   className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150"
-//                                 >
-//                                   <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-//                                   <div className="flex-1 min-w-0">
-//                                     <span className="text-sm font-medium text-gray-900 block">
-//                                       {subAction.sub_action_name}
-//                                     </span>
-//                                     <span className="text-xs text-gray-500">
-//                                       Action: {action.action_name}
-//                                     </span>
-//                                   </div>
-//                                 </div>
-//                               ))}
-//                             </div>
-//                           </div>
-//                         ))}
-//                       </div>
-//                     </div>
-//                   </>
-//                 );
-//               })()}
-//             </div>
-//           )}
-//         </div>
-
-//         <Modal
-//           isOpen={isCreateModalOpen}
-//           onClose={() => setIsCreateModalOpen(false)}
-//           title="Create New Role"
-//           size="md"
-//         >
-//           <CreateRoleForm
-//             onSubmit={handleCreateRole}
-//             onCancel={() => setIsCreateModalOpen(false)}
-//             isLoading={isCreatingRole}
-//             title="Create New Role"
-//             submitButtonText="Create Role"
-//           />
-//         </Modal>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default SuperRoleManagement;
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { ChevronDown, Check, PlusCircle, X } from "lucide-react";
+import {  PlusCircle, X } from "lucide-react";
 import React from "react";
 import { UseSuperAdminRoles } from "../../../hooks/useSuperAdminRoles";
 import CreateRoleForm from "../../MasterAdmin/Roles/CreateRoleForm";
 import Modal from "../../../component/common/ui/Modal";
 import { Badge } from "../../../component/common/ui/Badge";
-import { DropdownButton } from "../../../component/common/ui/DropdownButton";
+import ResponsiveDropdown from "../../../component/common/ui/ResponsiveDropdown";
 
 const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
   isReadOnly,
@@ -2254,6 +26,8 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
     moduleOptions,
     getActionOptionsForModules,
     getSubActionOptionsForModulesAndActions,
+    paginationParams,
+    updatePaginationParams,
   } = UseSuperAdminRoles();
 
   // Form state
@@ -2264,114 +38,67 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
 
   // UI state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isModuleDropdownOpen, setIsModuleDropdownOpen] = useState(false);
-  const [, setIsActionDropdownOpen] = useState(false);
-  const [isSubActionDropdownOpen, setIsSubActionDropdownOpen] = useState(false);
   const [expandedDropdown, setExpandedDropdown] = useState<{
     id: string;
     type: string;
   } | null>(null);
-  const [searchTerm] = useState("");
-
-  // Smart positioning state
-  const [dropdownPosition, setDropdownPosition] = useState<{
-    top?: number;
-    bottom?: number;
-    left: number;
-    openUpward: boolean;
-  }>({ left: 0, openUpward: false });
 
   // Refs
-  const moduleDropdownRef = useRef<HTMLDivElement>(null);
-  const actionDropdownRef = useRef<HTMLDivElement>(null);
-  const subActionDropdownRef = useRef<HTMLDivElement>(null);
   const masterTableContainerRef = useRef<HTMLDivElement>(null);
   const superTableContainerRef = useRef<HTMLDivElement>(null);
-  const dropdownButtonRefs = useRef<Record<string, HTMLButtonElement>>({});
 
-  // Calculate smart dropdown position
-  const calculateDropdownPosition = useCallback((buttonElement: HTMLButtonElement, tableContainer: HTMLDivElement | null) => {
-    const buttonRect = buttonElement.getBoundingClientRect();
-    
-    if (!tableContainer) return { left: 0, openUpward: false };
-    
-    const containerRect = tableContainer.getBoundingClientRect();
-    const dropdownHeight = 350; // Approximate dropdown height
-    const spaceBelow = containerRect.bottom - buttonRect.bottom;
-    const spaceAbove = buttonRect.top - containerRect.top;
-    
-    // Calculate position relative to the table container
-    const relativeLeft = buttonRect.left - containerRect.left;
-    
-    // Determine if dropdown should open upward
-    const shouldOpenUpward = spaceBelow < dropdownHeight && spaceAbove > dropdownHeight;
-    
-    if (shouldOpenUpward) {
-      return {
-        bottom: containerRect.bottom - buttonRect.top + 8,
-        left: relativeLeft,
-        openUpward: true,
-      };
-    } else {
-      return {
-        top: buttonRect.bottom - containerRect.top + 8,
-        left: relativeLeft,
-        openUpward: false,
-      };
-    }
-  }, []);
-
-  // Memoized computed values
+  // Memoized computed values with enhanced filtering
   const availableActions = useMemo(
     () => getActionOptionsForModules(selectedModules),
     [getActionOptionsForModules, selectedModules]
   );
 
-  const availableSubActions = useMemo(
-    () =>
-      getSubActionOptionsForModulesAndActions(selectedModules, selectedActions),
-    [getSubActionOptionsForModulesAndActions, selectedModules, selectedActions]
-  );
+  const availableSubActions = useMemo(() => {
+    const currentRoleId = selectedSuperAdminRole ? parseInt(selectedSuperAdminRole) : undefined;
+    return getSubActionOptionsForModulesAndActions(
+      selectedModules, 
+      selectedActions, 
+      currentRoleId
+    );
+  }, [getSubActionOptionsForModulesAndActions, selectedModules, selectedActions, selectedSuperAdminRole]);
 
-const masterAdminFlattenedData = useMemo(() => {
-  const grouped = new Map<string, any>();
+  // Enhanced data processing with better grouping
+  const masterAdminFlattenedData = useMemo(() => {
+    const grouped = new Map<string, any>();
 
-  MasterAdminRoleMappings?.forEach((moduleMapping: any) => {
-    // module_data is an object, not an array
-    const roleData = moduleMapping?.module_data;
+    MasterAdminRoleMappings?.forEach((moduleMapping: any) => {
+      const roleData = moduleMapping?.module_data;
 
-    
-    if (roleData && typeof roleData === 'object' && roleData.role_id) {
-      const groupKey = `${roleData.role_id}-${moduleMapping.module_name}`;
+      if (roleData && typeof roleData === 'object' && roleData.role_id) {
+        const groupKey = `${roleData.role_id}-${moduleMapping.module_name}`;
 
-      if (!grouped.has(groupKey)) {
-        grouped.set(groupKey, {
-          role_id: roleData.role_id,
-          role_name: roleData.role_name,
-          status: roleData.status,
-          assignment_date: moduleMapping.assignment_date,
-          module_name: moduleMapping.module_name,
-          actions: [],
-        });
-      }
-
-      const existingGroup = grouped.get(groupKey)!;
-      
-      // Process actions array from the roleData
-      if (roleData.actions && Array.isArray(roleData.actions)) {
-        roleData.actions.forEach((action: any) => {
-          existingGroup.actions.push({
-            action_id: action.action_id,
-            action_name: action.action_name,
-            sub_actions: Array.isArray(action.all_sub_actions) ? action.all_sub_actions : [],
+        if (!grouped.has(groupKey)) {
+          grouped.set(groupKey, {
+            role_id: roleData.role_id,
+            role_name: roleData.role_name,
+            status: roleData.status,
+            assignment_date: moduleMapping.assignment_date,
+            module_name: moduleMapping.module_name,
+            actions: [],
           });
-        });
-      }
-    }
-  });
+        }
 
-  return Array.from(grouped.values());
-}, [MasterAdminRoleMappings]);
+        const existingGroup = grouped.get(groupKey)!;
+        
+        if (roleData.actions && Array.isArray(roleData.actions)) {
+          roleData.actions.forEach((action: any) => {
+            existingGroup.actions.push({
+              action_id: action.action_id,
+              action_name: action.action_name,
+              sub_actions: Array.isArray(action.all_sub_actions) ? action.all_sub_actions : [],
+            });
+          });
+        }
+      }
+    });
+
+    return Array.from(grouped.values());
+  }, [MasterAdminRoleMappings]);
 
   const superAdminFlattenedData = useMemo(() => {
     const grouped = new Map<string, any>();
@@ -2382,6 +109,7 @@ const masterAdminFlattenedData = useMemo(() => {
       if (!grouped.has(groupKey)) {
         grouped.set(groupKey, {
           super_admin_role_name: mapping.super_admin_role_name,
+          super_admin_role_id: mapping.super_admin_role_id,
           module_name: mapping.module_name,
           actions: [],
         });
@@ -2389,7 +117,6 @@ const masterAdminFlattenedData = useMemo(() => {
 
       const existingGroup = grouped.get(groupKey)!;
 
-      // Check if action already exists
       let existingAction = existingGroup.actions.find(
         (action: any) => action.action_name === mapping.action_name
       );
@@ -2402,7 +129,6 @@ const masterAdminFlattenedData = useMemo(() => {
         existingGroup.actions.push(existingAction);
       }
 
-      // Add sub-actions to the action
       mapping.sub_actions.forEach((subAction) => {
         if (
           !existingAction.sub_actions.find(
@@ -2420,28 +146,7 @@ const masterAdminFlattenedData = useMemo(() => {
     return Array.from(grouped.values());
   }, [superAdminRoleMappings]);
 
-  const filteredSuperAdminData = useMemo(() => {
-    if (!searchTerm) return superAdminFlattenedData;
-    return superAdminFlattenedData.filter(
-      (item: any) =>
-        item.super_admin_role_name
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        item.module_name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [superAdminFlattenedData, searchTerm]);
-
-  const filteredMasterData = useMemo(() => {
-    if (!searchTerm) return masterAdminFlattenedData;
-    return masterAdminFlattenedData.filter(
-      (item: any) =>
-        item.role_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.module_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.action_name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [masterAdminFlattenedData, searchTerm]);
-
-  // Callbacks
+  // Enhanced callback functions
   const handleModuleToggle = useCallback((moduleId: string) => {
     setSelectedModules((prev) => {
       if (prev.includes(moduleId)) {
@@ -2467,9 +172,6 @@ const masterAdminFlattenedData = useMemo(() => {
     setSelectedModules([]);
     setSelectedActions("");
     setSelectedSubActions([]);
-    setIsModuleDropdownOpen(false);
-    setIsActionDropdownOpen(false);
-    setIsSubActionDropdownOpen(false);
   }, []);
 
   const submitPermission = useCallback(async () => {
@@ -2504,6 +206,7 @@ const masterAdminFlattenedData = useMemo(() => {
     setMessage,
   ]);
 
+  // Enhanced dropdown toggle with proper attachment
   const toggleDropdown = useCallback(
     (id: number | string, type: "actions" | "subactions") => {
       const dropdownId = `${id}`;
@@ -2512,113 +215,21 @@ const masterAdminFlattenedData = useMemo(() => {
         : { id: dropdownId, type };
       
       setExpandedDropdown(newExpandedDropdown);
-      
-      // Calculate position for table dropdowns
-      if (newExpandedDropdown) {
-        const buttonKey = `${dropdownId}-${type}`;
-        const buttonElement = dropdownButtonRefs.current[buttonKey];
-        if (buttonElement) {
-          // Determine which table container to use based on the dropdown ID
-          const tableContainer = dropdownId.startsWith('master-') 
-            ? masterTableContainerRef.current 
-            : superTableContainerRef.current;
-          const position = calculateDropdownPosition(buttonElement, tableContainer);
-          setDropdownPosition(position);
-        }
-      }
     },
-    [expandedDropdown, calculateDropdownPosition]
+    [expandedDropdown]
   );
 
-  // Effects
+  // Enhanced effects with better cleanup
   useEffect(() => {
     setSelectedActions("");
     setSelectedSubActions([]);
-    setIsActionDropdownOpen(false);
-    setIsSubActionDropdownOpen(false);
   }, [selectedModules]);
 
   useEffect(() => {
     setSelectedSubActions([]);
-    setIsSubActionDropdownOpen(false);
   }, [selectedActions]);
 
-  // Close dropdown on scroll for both tables
-  useEffect(() => {
-    const handleScroll = () => {
-      if (expandedDropdown) {
-        setExpandedDropdown(null);
-      }
-    };
-
-    const masterTableContainer = masterTableContainerRef.current;
-    const superTableContainer = superTableContainerRef.current;
-    
-    if (masterTableContainer) {
-      masterTableContainer.addEventListener('scroll', handleScroll);
-    }
-    if (superTableContainer) {
-      superTableContainer.addEventListener('scroll', handleScroll);
-    }
-    
-    return () => {
-      if (masterTableContainer) {
-        masterTableContainer.removeEventListener('scroll', handleScroll);
-      }
-      if (superTableContainer) {
-        superTableContainer.removeEventListener('scroll', handleScroll);
-      }
-    };
-  }, [expandedDropdown]);
-
-  // Click outside handler
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-
-      // Handle form dropdowns
-      if (
-        moduleDropdownRef.current &&
-        !moduleDropdownRef.current.contains(target)
-      ) {
-        setIsModuleDropdownOpen(false);
-      }
-      if (
-        actionDropdownRef.current &&
-        !actionDropdownRef.current.contains(target)
-      ) {
-        setIsActionDropdownOpen(false);
-      }
-      if (
-        subActionDropdownRef.current &&
-        !subActionDropdownRef.current.contains(target)
-      ) {
-        setIsSubActionDropdownOpen(false);
-      }
-
-      // Handle table dropdowns with smart positioning
-      if (expandedDropdown) {
-        // Check if click is on a dropdown button
-        const isClickOnDropdownButton = Object.values(dropdownButtonRefs.current).some(
-          button => button && button.contains(target)
-        );
-        
-        // Check if click is inside dropdown content
-        const isDropdownClick =
-          target.closest("[data-dropdown-toggle]") ||
-          target.closest("[data-dropdown-content]") ||
-          target.closest(".dropdown-content");
-        
-        if (!isDropdownClick && !isClickOnDropdownButton) {
-          setExpandedDropdown(null);
-        }
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [expandedDropdown]);
-
+  // Message auto-clear
   useEffect(() => {
     if (message) {
       const timer = setTimeout(() => setMessage(""), 5000);
@@ -2626,8 +237,33 @@ const masterAdminFlattenedData = useMemo(() => {
     }
   }, [message, setMessage]);
 
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (expandedDropdown) {
+        setExpandedDropdown(null);
+      }
+    };
+
+    const handleScroll = () => {
+      if (expandedDropdown) {
+        setExpandedDropdown(null);
+      }
+    };
+
+    if (expandedDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      window.addEventListener('scroll', handleScroll, true);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [expandedDropdown]);
+
   return (
-    <div className=" bg-gradient-to-br from-gray-50 to-gray-100 p-2 sm:p-4 lg:p-6">
+    <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-2 sm:p-4 lg:p-6">
       <div className="max-w-full mx-auto space-y-6 lg:space-y-8">
         {/* Header Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6">
@@ -2666,7 +302,7 @@ const masterAdminFlattenedData = useMemo(() => {
             </div>
           )}
 
-          {/* Form Section */}
+          {/* Enhanced Form Section with Responsive Dropdowns */}
           <div className="mt-2 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
               {/* Super Admin Role Dropdown */}
@@ -2677,26 +313,18 @@ const masterAdminFlattenedData = useMemo(() => {
                     ({availableSuperAdminRoles.length} available)
                   </span>
                 </label>
-                <div className="relative">
-                  <select
-                    value={selectedSuperAdminRole}
-                    onChange={(e) => setSelectedSuperAdminRole(e.target.value)}
-                    disabled={isReadOnly || isLoading}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white text-sm transition-all duration-200 ${
-                      selectedSuperAdminRole
-                        ? "border-blue-300 bg-blue-50"
-                        : "border-gray-300 hover:border-gray-400"
-                    } disabled:bg-gray-100 disabled:cursor-not-allowed`}
-                  >
-                    <option value="">Choose Super Admin Role...</option>
-                    {availableSuperAdminRoles.map((role) => (
-                      <option key={role.role_id} value={role.role_id}>
-                        {role.role_name}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
+                <ResponsiveDropdown
+                  options={availableSuperAdminRoles.map(role => ({
+                    id: role.role_id.toString(),
+                    label: role.role_name,
+                    value: role.role_id
+                  }))}
+                  selectedValue={selectedSuperAdminRole}
+                  onSelect={(value) => setSelectedSuperAdminRole(Array.isArray(value) ? value[0] : value)}
+                  placeholder="Choose Super Admin Role..."
+                  disabled={isReadOnly || isLoading}
+                  className="w-full"
+                />
                 {selectedSuperAdminRole && (
                   <div className="mt-2">
                     <Badge variant="blue" size="sm">
@@ -2712,56 +340,32 @@ const masterAdminFlattenedData = useMemo(() => {
               </div>
 
               {/* Module Multi-Select Dropdown */}
-              <div ref={moduleDropdownRef} className="space-y-2">
+              <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
                   Select Modules
                   <span className="text-xs text-gray-500 font-normal ml-2">
                     ({moduleOptions.length} available)
                   </span>
                 </label>
-                <div className="relative">
-                  <DropdownButton
-                    onClick={() =>
-                      setIsModuleDropdownOpen(!isModuleDropdownOpen)
-                    }
-                    isOpen={isModuleDropdownOpen}
-                    disabled={
-                      !selectedSuperAdminRole || isReadOnly || isLoading
-                    }
-                  >
-                    {selectedModules.length === 0
-                      ? "Choose Modules..."
-                      : selectedModules.length === 1
-                      ? selectedModules[0]
-                      : `${selectedModules.length} modules selected`}
-                  </DropdownButton>
-
-                  {isModuleDropdownOpen && moduleOptions.length > 0 && (
-                    <div className="absolute z-20 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-auto">
-                      <div className="p-2">
-                        {moduleOptions.map((module) => (
-                          <label
-                            key={module.id}
-                            className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer rounded-md transition-colors duration-150"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={selectedModules.includes(module.id)}
-                              onChange={() => handleModuleToggle(module.id)}
-                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mr-3 flex-shrink-0"
-                            />
-                            <span className="text-sm text-gray-700 flex-1 truncate">
-                              {module.label}
-                            </span>
-                            {selectedModules.includes(module.id) && (
-                              <Check className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                            )}
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <ResponsiveDropdown
+                  options={moduleOptions.map(module => ({
+                    id: module.id,
+                    label: module.label,
+                    value: module.module_id
+                  }))}
+                  selectedValue={selectedModules}
+                  onSelect={(value) => setSelectedModules(Array.isArray(value) ? value : [value])}
+                  placeholder="Choose Modules..."
+                  multiple={true}
+                  disabled={!selectedSuperAdminRole || isReadOnly || isLoading}
+                  className="w-full"
+                  searchable={true}
+                  renderSelected={(count, options) => 
+                    count === 0 ? "Choose Modules..." :
+                    count === 1 ? options[0].label : 
+                    `${count} modules selected`
+                  }
+                />
                 {selectedModules.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
                     {selectedModules.slice(0, 3).map((moduleName, index) => (
@@ -2786,24 +390,18 @@ const masterAdminFlattenedData = useMemo(() => {
                     ({availableActions.length} available)
                   </span>
                 </label>
-                <div className="relative">
-                  <select
-                    value={selectedActions}
-                    onChange={(e) => setSelectedActions(e.target.value)}
-                    disabled={
-                      selectedModules.length === 0 || isReadOnly || isLoading
-                    }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed text-sm transition-all duration-200 hover:border-gray-400"
-                  >
-                    <option value="">Choose Action...</option>
-                    {availableActions.map((action) => (
-                      <option key={action.id} value={action.id}>
-                        {action.label}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
+                <ResponsiveDropdown
+                  options={availableActions.map(action => ({
+                    id: action.id,
+                    label: action.label,
+                    value: action.action_id
+                  }))}
+                  selectedValue={selectedActions}
+                  onSelect={(value) => setSelectedActions(Array.isArray(value) ? value[0] : value)}
+                  placeholder="Choose Action..."
+                  disabled={selectedModules.length === 0 || isReadOnly || isLoading}
+                  className="w-full"
+                />
                 {selectedActions && (
                   <div className="mt-2">
                     <Badge variant="green" size="sm">
@@ -2814,61 +412,32 @@ const masterAdminFlattenedData = useMemo(() => {
               </div>
 
               {/* Sub-Action Multi-Select Dropdown */}
-              <div ref={subActionDropdownRef} className="space-y-2">
+              <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
                   Select Sub Actions
                   <span className="text-xs text-gray-500 font-normal ml-2">
-                    ({availableSubActions.length} available)
+                    ({availableSubActions.length} unassigned)
                   </span>
                 </label>
-                <div className="relative">
-                  <DropdownButton
-                    onClick={() =>
-                      setIsSubActionDropdownOpen(!isSubActionDropdownOpen)
-                    }
-                    isOpen={isSubActionDropdownOpen}
-                    disabled={!selectedActions || isReadOnly || isLoading}
-                  >
-                    {selectedSubActions.length === 0
-                      ? "Choose Sub Actions..."
-                      : selectedSubActions.length === 1
-                      ? selectedSubActions[0]
-                      : `${selectedSubActions.length} sub actions selected`}
-                  </DropdownButton>
-
-                  {isSubActionDropdownOpen &&
-                    availableSubActions.length > 0 && (
-                      <div className="absolute z-20 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-auto">
-                        <div className="p-2">
-                          {availableSubActions.map((subAction) => (
-                            <label
-                              key={`${subAction.parent_action}-${subAction.id}`}
-                              className="flex items-start px-3 py-2 hover:bg-gray-50 cursor-pointer rounded-md transition-colors duration-150"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={selectedSubActions.includes(
-                                  subAction.id
-                                )}
-                                onChange={() =>
-                                  handleSubActionToggle(subAction.id)
-                                }
-                                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mr-3 mt-0.5 flex-shrink-0"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <span className="text-sm text-gray-700 block truncate">
-                                  {subAction.label}
-                                </span>
-                              </div>
-                              {selectedSubActions.includes(subAction.id) && (
-                                <Check className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                              )}
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                </div>
+                <ResponsiveDropdown
+                  options={availableSubActions.map(subAction => ({
+                    id: subAction.id,
+                    label: subAction.label,
+                    value: subAction.sub_action_id
+                  }))}
+                  selectedValue={selectedSubActions}
+                  onSelect={(value) => setSelectedSubActions(Array.isArray(value) ? value : [value])}
+                  placeholder="Choose Sub Actions..."
+                  multiple={true}
+                  disabled={!selectedActions || isReadOnly || isLoading}
+                  className="w-full"
+                  searchable={true}
+                  renderSelected={(count, options) => 
+                    count === 0 ? "Choose Sub Actions..." :
+                    count === 1 ? options[0].label.split(' (')[0] : 
+                    `${count} sub actions selected`
+                  }
+                />
                 {selectedSubActions.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
                     {selectedSubActions
@@ -2888,8 +457,8 @@ const masterAdminFlattenedData = useMemo(() => {
               </div>
             </div>
 
-            {/* Submit Button */}
-            <div className="flex flex-col sm:flex-row gap-3 ">
+            {/* Submit Section */}
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1" />
               <button
                 onClick={resetForm}
@@ -2917,11 +486,11 @@ const masterAdminFlattenedData = useMemo(() => {
         {/* Master Admin Role Permissions Table */}
         <div 
           ref={masterTableContainerRef}
-          className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative"
+          className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
         >
           <div className="px-4 lg:px-6 py-4 border-b border-gray-200 bg-gray-50">
             <h3 className="text-xl font-semibold text-gray-900">
-              Default Master roles available for assignment. 
+              Default Master roles available for assignment
             </h3>
           </div>
 
@@ -2948,22 +517,20 @@ const masterAdminFlattenedData = useMemo(() => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredMasterData.length === 0 ? (
+                  {masterAdminFlattenedData.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-4 lg:px-6 py-12 text-center">
+                      <td colSpan={5} className="px-4 lg:px-6 py-12 text-center">
                         <div className="flex flex-col items-center justify-center space-y-3">
                           <div className="text-gray-500 text-sm">
-                            {searchTerm
-                              ? "Once a module is assigned, you will be able to access the Master Admin role."
-                               : "No modules have been assigned to your Account. Please contact the Master User for access."}
+                            No modules have been assigned to your Account. Please contact the Master User for access.
                           </div>
                         </div>
                       </td>
                     </tr>
                   ) : (
-                    filteredMasterData.map((roleData: any, index) => (
+                    masterAdminFlattenedData.map((roleData: any, index) => (
                       <tr
-                        key={`master-${roleData.role_id}-${roleData.module_name}-${roleData.action_name}-${index}`}
+                        key={`master-${roleData.role_id}-${roleData.module_name}-${index}`}
                         className="hover:bg-gray-50 transition-colors duration-150"
                       >
                         <td className="px-3 lg:px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
@@ -2977,67 +544,28 @@ const masterAdminFlattenedData = useMemo(() => {
                         </td>
                         <td className="px-3 lg:px-6 py-4">
                           <div className="relative">
-                            <button
-                              ref={(el) => {
-                                if (el) dropdownButtonRefs.current[`master-${index}-actions`] = el;
-                              }}
-                              data-dropdown-toggle
-                              onClick={() =>
-                                toggleDropdown(`master-${index}`, "actions")
-                              }
-                              className="inline-flex justify-between items-center min-w-[120px] px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
-                            >
-                              <span className="flex items-center">
-                                <Badge variant="green" size="sm">
-                                  {roleData.actions.length}
-                                </Badge>
-                                <span className="text-sm ml-2">Actions</span>
-                              </span>
-                              <ChevronDown
-                                size={16}
-                                className={`ml-2 flex-shrink-0 transition-transform duration-200 ${
-                                  expandedDropdown?.id === `master-${index}` &&
-                                  expandedDropdown?.type === "actions"
-                                    ? "transform rotate-180"
-                                    : ""
-                                }`}
-                              />
-                            </button>
+                            <select className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                              <option value="">Actions ({roleData.actions.length})</option>
+                              {roleData.actions.map((action: any, actionIdx: number) => (
+                                <option key={actionIdx} value={action.action_name}>
+                                  {action.action_name}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                         </td>
-
                         <td className="px-3 lg:px-6 py-4">
                           <div className="relative">
-                            <button
-                              ref={(el) => {
-                                if (el) dropdownButtonRefs.current[`master-${index}-subactions`] = el;
-                              }}
-                              data-dropdown-toggle
-                              onClick={() =>
-                                toggleDropdown(`master-${index}`, "subactions")
-                              }
-                              className="inline-flex justify-between items-center min-w-[140px] px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
-                            >
-                              <span className="flex items-center">
-                                <Badge variant="orange" size="sm">
-                                  {roleData.actions.reduce(
-                                    (total: number, action: any) =>
-                                      total + action.sub_actions.length,
-                                    0
-                                  )}
-                                </Badge>
-                                <span className="text-sm ml-2">Sub Actions</span>
-                              </span>
-                              <ChevronDown
-                                size={16}
-                                className={`ml-2 flex-shrink-0 transition-transform duration-200 ${
-                                  expandedDropdown?.id === `master-${index}` &&
-                                  expandedDropdown?.type === "subactions"
-                                    ? "transform rotate-180"
-                                    : ""
-                                }`}
-                              />
-                            </button>
+                            <select className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                              <option value="">Sub Actions ({roleData.actions.reduce((total: number, action: any) => total + action.sub_actions.length, 0)})</option>
+                              {roleData.actions.map((action: any, actionIdx: number) => 
+                                action.sub_actions.map((subAction: any, subIdx: number) => (
+                                  <option key={`${actionIdx}-${subIdx}`} value={subAction.sub_action_name}>
+                                    {action.action_name} → {subAction.sub_action_name}
+                                  </option>
+                                ))
+                              )}
+                            </select>
                           </div>
                         </td>
                       </tr>
@@ -3047,118 +575,16 @@ const masterAdminFlattenedData = useMemo(() => {
               </table>
             </div>
           </div>
-
-          {/* Smart positioned dropdowns for Master Admin table */}
-          {expandedDropdown?.id.startsWith('master-') && expandedDropdown?.type === "actions" && (
-            <div 
-              className="dropdown-content absolute z-50 w-80 bg-white rounded-xl shadow-2xl border border-gray-200"
-              style={{
-                top: dropdownPosition.openUpward ? 'auto' : dropdownPosition.top,
-                bottom: dropdownPosition.openUpward ? dropdownPosition.bottom : 'auto',
-                left: dropdownPosition.left,
-                maxWidth: 'calc(100vw - 2rem)',
-              }}
-            >
-              {(() => {
-                const index = parseInt(expandedDropdown.id.replace('master-', ''));
-                const roleData = filteredMasterData[index];
-                return (
-                  <>
-                    <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
-                      <span className="text-sm font-semibold text-gray-900">
-                        Actions for {roleData?.module_name} ({roleData?.actions.length})
-                      </span>
-                    </div>
-                    <div className="p-3 max-h-60 overflow-y-auto">
-                      <div className="space-y-2">
-                        {roleData?.actions.map((action: any, actionIdx: number) => (
-                          <div
-                            key={actionIdx}
-                            className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150"
-                          >
-                            <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0"></div>
-                            <div className="flex-1 min-w-0">
-                              <span className="text-sm font-medium text-gray-900 block">
-                                {action.action_name}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                Sub Actions: {action.sub_actions.length}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-          )}
-
-          {expandedDropdown?.id.startsWith('master-') && expandedDropdown?.type === "subactions" && (
-            <div 
-              className="dropdown-content absolute z-50 w-80 bg-white rounded-xl shadow-2xl border border-gray-200"
-              style={{
-                top: dropdownPosition.openUpward ? 'auto' : dropdownPosition.top,
-                bottom: dropdownPosition.openUpward ? dropdownPosition.bottom : 'auto',
-                left: dropdownPosition.left,
-                maxWidth: 'calc(100vw - 2rem)',
-              }}
-            >
-              {(() => {
-                const index = parseInt(expandedDropdown.id.replace('master-', ''));
-                const roleData = filteredMasterData[index];
-                return (
-                  <>
-                    <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
-                      <span className="text-sm font-semibold text-gray-900">
-                        All Sub Actions ({roleData?.actions.reduce((total: number, action: any) => total + action.sub_actions.length, 0)})
-                      </span>
-                    </div>
-                    <div className="p-3 max-h-60 overflow-y-auto">
-                      <div className="space-y-3">
-                        {roleData?.actions.map((action: any, actionIdx: number) => (
-                          <div
-                            key={actionIdx}
-                            className="border-b border-gray-100 pb-2 last:border-b-0"
-                          >
-                            <div className="text-xs font-medium text-gray-600 mb-2">
-                              {action.action_name}
-                            </div>
-                            <div className="space-y-1">
-                              {action.sub_actions.map((subAction: any, subIdx: number) => (
-                                <div
-                                  key={subIdx}
-                                  className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150"
-                                >
-                                  <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                                  <div className="flex-1 min-w-0">
-                                    <span className="text-sm font-medium text-gray-900 block">
-                                      {subAction.sub_action_name}
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-          )}
         </div>
 
         {/* Super Admin Role Permissions Table */}
         <div 
           ref={superTableContainerRef}
-          className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative"
+          className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
         >
           <div className="px-4 lg:px-6 py-4 border-b border-gray-200 bg-gray-50">
             <h3 className="text-xl font-semibold text-gray-900">
-              Custom role mappings 
+              Custom role mappings
             </h3>
           </div>
 
@@ -3185,20 +611,18 @@ const masterAdminFlattenedData = useMemo(() => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredSuperAdminData.length === 0 ? (
+                  {superAdminFlattenedData.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="px-4 lg:px-6 py-12 text-center">
                         <div className="flex flex-col items-center justify-center space-y-3">
                           <div className="text-gray-500 text-sm">
-                            {searchTerm
-                              ? "No matching role permissions found."
-                              : "No role permissions assigned yet. Use the form above to assign permissions to roles."}
+                            No role permissions assigned yet. Use the form above to assign permissions to roles.
                           </div>
                         </div>
                       </td>
                     </tr>
                   ) : (
-                    filteredSuperAdminData.map((roleData: any, index) => (
+                    superAdminFlattenedData.map((roleData: any, index) => (
                       <tr
                         key={`super-${roleData.super_admin_role_name}-${roleData.module_name}-${index}`}
                         className="hover:bg-gray-50 transition-colors duration-150"
@@ -3216,67 +640,28 @@ const masterAdminFlattenedData = useMemo(() => {
                         </td>
                         <td className="px-3 lg:px-6 py-4">
                           <div className="relative">
-                            <button
-                              ref={(el) => {
-                                if (el) dropdownButtonRefs.current[`super-${index}-actions`] = el;
-                              }}
-                              data-dropdown-toggle
-                              onClick={() =>
-                                toggleDropdown(`super-${index}`, "actions")
-                              }
-                              className="inline-flex justify-between items-center min-w-[120px] px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
-                            >
-                              <span className="flex items-center">
-                                <Badge variant="green" size="sm">
-                                  {roleData.actions.length}
-                                </Badge>
-                                <span className="text-sm ml-2">Actions</span>
-                              </span>
-                              <ChevronDown
-                                size={16}
-                                className={`ml-2 flex-shrink-0 transition-transform duration-200 ${
-                                  expandedDropdown?.id === `super-${index}` &&
-                                  expandedDropdown?.type === "actions"
-                                    ? "transform rotate-180"
-                                    : ""
-                                }`}
-                              />
-                            </button>
+                            <select className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                              <option value="">Actions ({roleData.actions.length})</option>
+                              {roleData.actions.map((action: any, actionIdx: number) => (
+                                <option key={actionIdx} value={action.action_name}>
+                                  {action.action_name}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                         </td>
-
                         <td className="px-3 lg:px-6 py-4">
                           <div className="relative">
-                            <button
-                              ref={(el) => {
-                                if (el) dropdownButtonRefs.current[`super-${index}-subactions`] = el;
-                              }}
-                              data-dropdown-toggle
-                              onClick={() =>
-                                toggleDropdown(`super-${index}`, "subactions")
-                              }
-                              className="inline-flex justify-between items-center min-w-[140px] px-3 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg shadow-sm text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-150"
-                            >
-                              <span className="flex items-center">
-                                <Badge variant="orange" size="sm">
-                                  {roleData.actions.reduce(
-                                    (total: number, action: any) =>
-                                      total + action.sub_actions.length,
-                                    0
-                                  )}
-                                </Badge>
-                                <span className="text-sm ml-2">Sub Actions</span>
-                              </span>
-                              <ChevronDown
-                                size={16}
-                                className={`ml-2 flex-shrink-0 transition-transform duration-200 ${
-                                  expandedDropdown?.id === `super-${index}` &&
-                                  expandedDropdown?.type === "subactions"
-                                    ? "transform rotate-180"
-                                    : ""
-                                }`}
-                              />
-                            </button>
+                            <select className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                              <option value="">Sub Actions ({roleData.actions.reduce((total: number, action: any) => total + action.sub_actions.length, 0)})</option>
+                              {roleData.actions.map((action: any, actionIdx: number) => 
+                                action.sub_actions.map((subAction: any, subIdx: number) => (
+                                  <option key={`${actionIdx}-${subIdx}`} value={subAction.sub_action_name}>
+                                    {action.action_name} → {subAction.sub_action_name}
+                                  </option>
+                                ))
+                              )}
+                            </select>
                           </div>
                         </td>
                       </tr>
@@ -3286,111 +671,6 @@ const masterAdminFlattenedData = useMemo(() => {
               </table>
             </div>
           </div>
-
-          {/* Smart positioned dropdowns for Super Admin table */}
-          {expandedDropdown?.id.startsWith('super-') && expandedDropdown?.type === "actions" && (
-            <div 
-              className="dropdown-content absolute z-50 w-80 bg-white rounded-xl shadow-2xl border border-gray-200"
-              style={{
-                top: dropdownPosition.openUpward ? 'auto' : dropdownPosition.top,
-                bottom: dropdownPosition.openUpward ? dropdownPosition.bottom : 'auto',
-                left: dropdownPosition.left,
-                maxWidth: 'calc(100vw - 2rem)',
-              }}
-            >
-              {(() => {
-                const index = parseInt(expandedDropdown.id.replace('super-', ''));
-                const roleData = filteredSuperAdminData[index];
-                return (
-                  <>
-                    <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
-                      <span className="text-sm font-semibold text-gray-900">
-                        Actions for {roleData?.module_name} ({roleData?.actions.length})
-                      </span>
-                    </div>
-                    <div className="p-3 max-h-60 overflow-y-auto">
-                      <div className="space-y-2">
-                        {roleData?.actions.map((action: any, actionIdx: number) => (
-                          <div
-                            key={actionIdx}
-                            className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150"
-                          >
-                            <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0"></div>
-                            <div className="flex-1 min-w-0">
-                              <span className="text-sm font-medium text-gray-900 block">
-                                {action.action_name}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                Sub Actions: {action.sub_actions.length}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-          )}
-
-          {expandedDropdown?.id.startsWith('super-') && expandedDropdown?.type === "subactions" && (
-            <div 
-              className="dropdown-content absolute z-50 w-80 bg-white rounded-xl shadow-2xl border border-gray-200"
-              style={{
-                top: dropdownPosition.openUpward ? 'auto' : dropdownPosition.top,
-                bottom: dropdownPosition.openUpward ? dropdownPosition.bottom : 'auto',
-                left: dropdownPosition.left,
-                maxWidth: 'calc(100vw - 2rem)',
-              }}
-            >
-              {(() => {
-                const index = parseInt(expandedDropdown.id.replace('super-', ''));
-                const roleData = filteredSuperAdminData[index];
-                return (
-                  <>
-                    <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
-                      <span className="text-sm font-semibold text-gray-900">
-                        All Sub Actions ({roleData?.actions.reduce((total: number, action: any) => total + action.sub_actions.length, 0)})
-                      </span>
-                    </div>
-                    <div className="p-3 max-h-60 overflow-y-auto">
-                      <div className="space-y-3">
-                        {roleData?.actions.map((action: any, actionIdx: number) => (
-                          <div
-                            key={actionIdx}
-                            className="border-b border-gray-100 pb-2 last:border-b-0"
-                          >
-                            <div className="text-xs font-medium text-gray-600 mb-2">
-                              {action.action_name}
-                            </div>
-                            <div className="space-y-1">
-                              {action.sub_actions.map((subAction: any, subIdx: number) => (
-                                <div
-                                  key={subIdx}
-                                  className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors duration-150"
-                                >
-                                  <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                                  <div className="flex-1 min-w-0">
-                                    <span className="text-sm font-medium text-gray-900 block">
-                                      {subAction.sub_action_name}
-                                    </span>
-                                    <span className="text-xs text-gray-500">
-                                      Action: {action.action_name}
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                );
-              })()}
-            </div>
-          )}
         </div>
 
         <Modal

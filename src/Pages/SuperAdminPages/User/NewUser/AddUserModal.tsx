@@ -1,12 +1,9 @@
 
-
-
 import { User, Mail, UserPlus, X, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../../../../hooks/useAuth";
 import axios from "../../../../helper/axios";
 
-// Types (keeping your existing interfaces)
 interface UserData {
   name: string;
   email: string;
@@ -20,38 +17,53 @@ type AddMultipleUsersModalProps = {
   modules?: any[];
 };
 
-const AddUserModal: React.FC<AddMultipleUsersModalProps> = ({
-  onClose,
-}) => {
+const AddUserModal: React.FC<AddMultipleUsersModalProps> = ({ onClose }) => {
   const { authState } = useAuth();
   const [users, setUsers] = useState<UserData[]>([
     { name: "", email: "", nameError: "", emailError: "" }
   ]);
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState<string>("");
 
-  // Validation functions
+  // Enhanced validation functions
   const validateEmail = (email: string): string => {
     const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!email) return "Email is required";
+    if (!email.trim()) return "Email is required";
+    if (email.length > 100) return "Email must be less than 100 characters";
     if (!re.test(email)) return "Please enter a valid email address";
     return "";
   };
 
   const validateUserName = (name: string): string => {
     if (!name.trim()) return "User name is required";
-    if (!/^[a-zA-Z\s]+$/.test(name)) return "Name should contain only letters and spaces";
+    if (name.length < 2) return "Name must be at least 2 characters";
+    if (name.length > 50) return "Name must be less than 50 characters";
+    if (!/^[a-zA-Z\s'-]+$/.test(name)) return "Name should contain only letters, spaces, hyphens and apostrophes";
     return "";
+  };
+
+  // Check for duplicate emails within the form
+  const checkDuplicateEmails = (): boolean => {
+    const emails = users.map(user => user.email.toLowerCase().trim()).filter(email => email);
+    const uniqueEmails = new Set(emails);
+    return emails.length !== uniqueEmails.size;
   };
 
   // Add new user row
   const addUserRow = () => {
+    if (users.length >= 20) {
+      setApiError("Maximum 20 users allowed per form submission");
+      return;
+    }
     setUsers([...users, { name: "", email: "", nameError: "", emailError: "" }]);
+    setApiError("");
   };
 
   // Remove user row
   const removeUserRow = (index: number) => {
     if (users.length > 1) {
       setUsers(users.filter((_, i) => i !== index));
+      setApiError("");
     }
   };
 
@@ -68,10 +80,17 @@ const AddUserModal: React.FC<AddMultipleUsersModalProps> = ({
     }
     
     setUsers(newUsers);
+    setApiError("");
   };
 
-  // Validate all users
+  // Enhanced validation for all users
   const validateAllUsers = (): boolean => {
+    // Check for duplicate emails
+    if (checkDuplicateEmails()) {
+      setApiError("Duplicate email addresses found in the form");
+      return false;
+    }
+
     const newUsers = users.map(user => ({
       ...user,
       nameError: validateUserName(user.name),
@@ -79,22 +98,30 @@ const AddUserModal: React.FC<AddMultipleUsersModalProps> = ({
     }));
     
     setUsers(newUsers);
-    return newUsers.every(user => !user.nameError && !user.emailError);
+    
+    const hasErrors = newUsers.some(user => user.nameError || user.emailError);
+    if (hasErrors) {
+      setApiError("Please fix all validation errors before submitting");
+    }
+    
+    return !hasErrors;
   };
 
-  // Create multiple users
+  // Enhanced API call with better error handling
   const createMultipleUsers = async () => {
     if (!validateAllUsers()) return;
 
     setIsLoading(true);
+    setApiError("");
+    
     try {
       const token = authState.token;
       const userData = users.map(user => ({
-        name: user.name,
-        email: user.email
+        name: user.name.trim(),
+        email: user.email.toLowerCase().trim()
       }));
 
-       await axios.post(
+      const response = await axios.post(
         "api/v1/tenant-user",
         userData,
         {
@@ -106,10 +133,24 @@ const AddUserModal: React.FC<AddMultipleUsersModalProps> = ({
         }
       );
 
+      console.log("Users created successfully:", response.data);
       onClose();
       window.location.reload();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating users:", error);
+      
+      // Enhanced error handling from API response
+      let errorMessage = 'Error creating users. Please try again.';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setApiError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -117,60 +158,61 @@ const AddUserModal: React.FC<AddMultipleUsersModalProps> = ({
 
   const isFormValid = users.every(user => 
     user.name && user.email && !user.nameError && !user.emailError
-  );
+  ) && !checkDuplicateEmails();
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-1 sm:p-2">
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
         
-        {/* Header */}
-        <div className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 px-4 sm:px-6 py-4 sm:py-5">
+        {/* Compact Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-3 py-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-lg">
-                <UserPlus className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-              </div>
+            <div className="flex items-center gap-2">
+              <UserPlus className="h-4 w-4 text-white" />
               <div>
-                <h2 className="text-lg sm:text-xl font-bold text-white">Add Multiple Users</h2>
-                <p className="text-blue-100 text-xs sm:text-sm font-medium">
-                  Create multiple user accounts at once
-                </p>
+                <h2 className="text-sm font-bold text-white">Add Multiple Users</h2>
+                <p className="text-blue-100 text-xs">Create up to 20 accounts</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              disabled={isLoading}
-              className="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 group"
-            >
-              <X className="h-5 w-5 text-white group-hover:rotate-90 transition-transform duration-200" />
+            <button onClick={onClose} disabled={isLoading} className="p-1 hover:bg-white/20 rounded">
+              <X className="h-4 w-4 text-white" />
             </button>
           </div>
         </div>
 
         {/* Form Content */}
-        <div className="p-4 sm:p-6 max-h-[60vh] overflow-y-auto">
-          <div className="space-y-4">
+        <div className="p-3 max-h-[70vh] overflow-y-auto">
+          {/* API Error Display */}
+          {apiError && (
+            <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded">
+              <div className="flex items-start gap-2">
+                <div className="w-1 h-1 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
+                <div className="text-sm text-red-700 flex-1">{apiError}</div>
+                <button onClick={() => setApiError("")} className="text-red-500">
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-3">
             {users.map((user, index) => (
-              <div key={index} className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
-                <div className="flex items-center justify-between mb-4">
+              <div key={index} className="bg-gray-50 p-3 rounded border">
+                <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-semibold text-gray-700">User {index + 1}</h3>
                   {users.length > 1 && (
-                    <button
-                      onClick={() => removeUserRow(index)}
-                      className="p-1 text-red-500 hover:bg-red-100 rounded transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4" />
+                    <button onClick={() => removeUserRow(index)} className="p-1 text-red-500 hover:bg-red-100 rounded">
+                      <Trash2 className="h-3 w-3" />
                     </button>
                   )}
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                   {/* Name Field */}
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                      <User className="h-4 w-4 text-blue-600" />
-                      Full Name
-                      <span className="text-red-500">*</span>
+                  <div className="space-y-1">
+                    <label className="flex items-center gap-1 text-xs font-medium text-gray-700">
+                      <User className="h-3 w-3 text-blue-600" />
+                      Full Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -181,26 +223,22 @@ const AddUserModal: React.FC<AddMultipleUsersModalProps> = ({
                         const error = validateUserName(user.name);
                         updateUser(index, 'nameError', error);
                       }}
-                      className={`w-full px-3 py-2.5 border rounded-lg text-sm transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      className={`w-full px-2 py-1.5 border rounded text-sm ${
                         user.nameError 
-                          ? "border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-500" 
-                          : "border-gray-300 hover:border-gray-400"
+                          ? "border-red-300 bg-red-50" 
+                          : "border-gray-300"
                       }`}
                     />
                     {user.nameError && (
-                      <p className="text-xs text-red-600 flex items-center gap-1">
-                        <span className="w-1 h-1 bg-red-600 rounded-full"></span>
-                        {user.nameError}
-                      </p>
+                      <p className="text-xs text-red-600">{user.nameError}</p>
                     )}
                   </div>
 
                   {/* Email Field */}
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                      <Mail className="h-4 w-4 text-blue-600" />
-                      Email Address
-                      <span className="text-red-500">*</span>
+                  <div className="space-y-1">
+                    <label className="flex items-center gap-1 text-xs font-medium text-gray-700">
+                      <Mail className="h-3 w-3 text-blue-600" />
+                      Email Address <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="email"
@@ -211,17 +249,14 @@ const AddUserModal: React.FC<AddMultipleUsersModalProps> = ({
                         const error = validateEmail(user.email);
                         updateUser(index, 'emailError', error);
                       }}
-                      className={`w-full px-3 py-2.5 border rounded-lg text-sm transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      className={`w-full px-2 py-1.5 border rounded text-sm ${
                         user.emailError 
-                          ? "border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-500" 
-                          : "border-gray-300 hover:border-gray-400"
+                          ? "border-red-300 bg-red-50" 
+                          : "border-gray-300"
                       }`}
                     />
                     {user.emailError && (
-                      <p className="text-xs text-red-600 flex items-center gap-1">
-                        <span className="w-1 h-1 bg-red-600 rounded-full"></span>
-                        {user.emailError}
-                      </p>
+                      <p className="text-xs text-red-600">{user.emailError}</p>
                     )}
                   </div>
                 </div>
@@ -232,36 +267,37 @@ const AddUserModal: React.FC<AddMultipleUsersModalProps> = ({
           {/* Add User Button */}
           <button
             onClick={addUserRow}
-            className="mt-4 w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm font-medium text-gray-600 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center gap-2"
+            disabled={users.length >= 20}
+            className="mt-3 w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded text-sm font-medium text-gray-600 hover:border-blue-400 hover:text-blue-600 disabled:border-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-1"
           >
-            <Plus className="h-4 w-4" />
-            Add Another User
+            <Plus className="h-3 w-3" />
+            Add User {users.length >= 20 && "(Max 20)"}
           </button>
         </div>
 
         {/* Action Footer */}
-        <div className="bg-gray-50 px-4 sm:px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row gap-3 sm:gap-2 sm:justify-end">
+        <div className="bg-gray-50 px-3 py-2 border-t flex gap-2 justify-end">
           <button
-            className="w-full sm:w-auto px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:border-gray-400 transition-all duration-200 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            className="px-3 py-1.5 border border-gray-300 rounded text-sm text-gray-700 hover:bg-gray-100"
             onClick={onClose}
             disabled={isLoading}
           >
             Cancel
           </button>
           <button
-            className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-sm font-medium hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center gap-2 shadow-lg"
+            className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-1"
             onClick={createMultipleUsers}
             disabled={!isFormValid || isLoading}
           >
             {isLoading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                Creating Users...
+                <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
+                Creating...
               </>
             ) : (
               <>
-                <UserPlus className="h-4 w-4" />
-                Create {users.length} User{users.length > 1 ? 's' : ''}
+                <UserPlus className="h-3 w-3" />
+                Create {users.length}
               </>
             )}
           </button>
@@ -272,6 +308,3 @@ const AddUserModal: React.FC<AddMultipleUsersModalProps> = ({
 };
 
 export default AddUserModal;
-
-
-

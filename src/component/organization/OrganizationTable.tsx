@@ -37,6 +37,7 @@ const OrganizationTable = ({
       </div>
     );
   }
+console.log(organizations, "organizations");
 
   return (
     <div>
@@ -44,7 +45,7 @@ const OrganizationTable = ({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+              {/* <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th> */}
               <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Organization</th>
               <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
               <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Industry</th>
@@ -58,7 +59,7 @@ const OrganizationTable = ({
             {organizations.map((org, index) => (
               <tr key={`${org.tenant_id}-${index}`} className="hover:bg-gray-50 transition-colors">
                 {/* <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{org.tenant_id.slice(0, 8)}...</td> */}
-                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{org.tenant_id}</td>
+                {/* <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{org.tenant_id}</td> */}
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{org.name}</td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{org.organization_type}</td>
                 <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{org.industry_sector}</td>
