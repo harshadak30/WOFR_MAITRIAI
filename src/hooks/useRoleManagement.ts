@@ -60,14 +60,15 @@
 //     };
 //   };
 
-//   const fetchRoles = async (page: number = currentPage, limit: number = 100) => {
+//   const fetchRoles = async (page: number = currentPage, limit: number = itemsPerPage) => {
 //     setIsLoading(true);
 //     try {
 //       const { data } = await axios.get(`/api/v1/roles?page=${page}&limit=${limit}`, {
 //         headers: getAuthHeaders(),
 //       });
 
-      
+
+
 //       const rolesData = data.data.roles.map((r: any) => ({
 //         ...r,
 //         enabled: r.status === "active",
@@ -75,8 +76,8 @@
       
 //       setRoles(rolesData);
 //       setCurrentRoles(rolesData);
-//       setTotalItems(data.data.pagination?.total || rolesData.length);
-//       setTotalPages(data.data.pagination?.totalPages || Math.ceil((data.data.pagination?.total || rolesData.length) / limit));
+//       setTotalItems(data.meta.total_items || rolesData.length);
+//       setTotalPages(data.meta.total_pages || Math.ceil((data.meta.total_items || rolesData.length) / limit));
 //     } catch (error) {
 //       console.error("Failed to fetch roles:", error);
 //       setMessage("Failed to fetch roles.");
@@ -108,8 +109,6 @@
 //           headers: { Accept: "application/json" },
 //         }
 //       );
-
-//       console.log("fetchrolemapping", data);
       
 //       setRoleMappings(data.data.modules);
 //     } catch (error) {
@@ -335,48 +334,6 @@
 //     }
 //   };
 
-  
-
-//   const handleCreateRoleForSuperAdmin = async (roleData: {
-//     role_name: string;
-//     description: string;
-//     status: string;
-//   }) => {
-//     setIsCreatingRole(true);
-//     try {
-//       const { data } = await axios.post("/api/v1/roles", roleData, {
-//         headers: {
-//           ...getAuthHeaders(),
-//           "Content-Type": "application/json",
-//         },
-//       });
-
-//       const newRole = data.data.role;
-      
-//       setRoles((prev) => [
-//         ...prev,
-//         { ...newRole, enabled: newRole.status === "active" },
-//       ]);
-//       setMessage(`Role "${roleData.role_name}" created successfully`);
-      
-//       // Refresh the current page data
-//       fetchRoles(currentPage, itemsPerPage);
-      
-//       return true;
-//     } catch (error: any) {
-//       console.error("Failed to create role:", error);
-//       setMessage(
-//         `Failed to create role: ${
-//           error?.response?.data?.meta?.message || "Unknown error"
-//         }`
-//       );
-//       return false;
-//     } finally {
-//       setIsCreatingRole(false);
-//     }
-//   };
-
-
 //   const handleCreateRole = async (roleData: {
 //     role_name: string;
 //     description: string;
@@ -390,7 +347,6 @@
 //           "Content-Type": "application/json",
 //         },
 //       });
-
 //       const newRole = data.data.role;
       
 //       setRoles((prev) => [
@@ -402,7 +358,7 @@
 //       // Refresh the current page data
 //       fetchRoles(currentPage, itemsPerPage);
       
-//       return true;
+//       // return true;
 //     } catch (error: any) {
 //       console.error("Failed to create role:", error);
 //       setMessage(
@@ -410,7 +366,7 @@
 //           error?.response?.data?.meta?.message || "Unknown error"
 //         }`
 //       );
-//       return false;
+//       // return false;
 //     } finally {
 //       setIsCreatingRole(false);
 //     }
@@ -449,7 +405,6 @@
 //     handleSaveAssignments,
 //     handleSaveSingleAssignment,
 //     handleCreateRole,
-//     handleCreateRoleForSuperAdmin,
 //     fetchRoles,
 //     fetchRoleMappings,
 //     groupedRoleMappings,
@@ -464,6 +419,7 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "../helper/axios";
 import { useAuth } from "./useAuth";
 
+
 interface Role {
   role_id: number;
   role_name: string;
@@ -471,6 +427,7 @@ interface Role {
   status?: string;
   enabled: boolean;
 }
+
 
 interface ModuleActionPair {
   module_action_pair_id: number;
@@ -480,6 +437,7 @@ interface ModuleActionPair {
   action_name: string;
 }
 
+
 interface RoleMapping {
   role_name: string;
   module_name: string;
@@ -487,6 +445,7 @@ interface RoleMapping {
   status: string;
   assignment_date: string;
 }
+
 
 export const useRoleManagement = (isReadOnly: boolean) => {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -504,40 +463,53 @@ export const useRoleManagement = (isReadOnly: boolean) => {
   const [isCreatingRole, setIsCreatingRole] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
+
   const [currentRoles, setCurrentRoles] = useState<Role[]>([]);
   const { authState } = useAuth();
 
+
   const getAuthHeaders = () => {
-     const token = authState.token;
+    const token = authState.token;
     return {
       Authorization: `Bearer ${token}`,
       Accept: "application/json",
     };
   };
 
-  const fetchRoles = async (page: number = currentPage, limit: number = itemsPerPage) => {
+
+  const fetchRoles = async (
+    page: number = currentPage,
+    limit: number = itemsPerPage
+  ) => {
     setIsLoading(true);
     try {
-      const { data } = await axios.get(`/api/v1/roles?page=${page}&limit=${limit}`, {
-        headers: getAuthHeaders(),
-      });
-
+      const { data } = await axios.get(
+        `/api/v1/roles?page=${page}&limit=${limit}`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
 
 
       const rolesData = data.data.roles.map((r: any) => ({
         ...r,
         enabled: r.status === "active",
       }));
-      
+
+
       setRoles(rolesData);
       setCurrentRoles(rolesData);
       setTotalItems(data.meta.total_items || rolesData.length);
-      setTotalPages(data.meta.total_pages || Math.ceil((data.meta.total_items || rolesData.length) / limit));
+      setTotalPages(
+        data.meta.total_pages ||
+          Math.ceil((data.meta.total_items || rolesData.length) / limit)
+      );
     } catch (error) {
       console.error("Failed to fetch roles:", error);
       setMessage("Failed to fetch roles.");
@@ -546,7 +518,11 @@ export const useRoleManagement = (isReadOnly: boolean) => {
     }
   };
 
-  const fetchModuleActionPairs = async (page: number = 1, limit: number = 100) => {
+
+  const fetchModuleActionPairs = async (
+    page: number = 1,
+    limit: number = 100
+  ) => {
     try {
       const { data } = await axios.get(
         `/api/v1/module-action-pair?page=${page}&limit=${limit}`,
@@ -554,12 +530,14 @@ export const useRoleManagement = (isReadOnly: boolean) => {
           headers: { Accept: "application/json" },
         }
       );
-      
+
+
       setModuleActionPairs(data.data.module_action_pairs);
     } catch (error) {
       console.error("Failed to fetch module-action pairs:", error);
     }
   };
+
 
   const fetchRoleMappings = async (page: number = 1, limit: number = 100) => {
     try {
@@ -569,24 +547,29 @@ export const useRoleManagement = (isReadOnly: boolean) => {
           headers: { Accept: "application/json" },
         }
       );
-      
+
+
       setRoleMappings(data.data.modules);
     } catch (error) {
       console.error("Failed to fetch role mappings:", error);
     }
   };
 
+
   useEffect(() => {
     fetchRoles(currentPage, itemsPerPage);
   }, [currentPage, itemsPerPage]);
+
 
   useEffect(() => {
     fetchModuleActionPairs();
     fetchRoleMappings();
 
+
     const interval = setInterval(() => fetchRoleMappings(), 10000);
     return () => clearInterval(interval);
   }, []);
+
 
   const moduleOptions = useMemo(() => {
     const seen = new Set();
@@ -600,21 +583,25 @@ export const useRoleManagement = (isReadOnly: boolean) => {
       }));
   }, [moduleActionPairs]);
 
+
   const getActionOptionsForModules = (selectedModules: string[]) => {
     if (!selectedModules || selectedModules.length === 0) return [];
-    
+
+
     const seen = new Set();
     return moduleActionPairs
-      .filter(({ module_name, action_name }) => 
-        selectedModules.includes(module_name) && 
-        !seen.has(action_name) && 
-        seen.add(action_name)
+      .filter(
+        ({ module_name, action_name }) =>
+          selectedModules.includes(module_name) &&
+          !seen.has(action_name) &&
+          seen.add(action_name)
       )
       .map(({ action_name }) => ({
         id: action_name,
         label: action_name,
       }));
   };
+
 
   const actionOptions = useMemo(() => {
     const seen = new Set();
@@ -628,6 +615,7 @@ export const useRoleManagement = (isReadOnly: boolean) => {
       }));
   }, [moduleActionPairs]);
 
+
   const groupedRoleMappings = useMemo(() => {
     return roleMappings.reduce((acc, item) => {
       if (!acc[item.role_name]) acc[item.role_name] = [];
@@ -635,6 +623,7 @@ export const useRoleManagement = (isReadOnly: boolean) => {
       return acc;
     }, {} as Record<string, RoleMapping[]>);
   }, [roleMappings]);
+
 
   const handleToggleChange = (roleId: number) => {
     if (isReadOnly) return;
@@ -649,6 +638,7 @@ export const useRoleManagement = (isReadOnly: boolean) => {
       )
     );
   };
+
 
   const handleApply = (
     roleId: number,
@@ -665,18 +655,24 @@ export const useRoleManagement = (isReadOnly: boolean) => {
     setSelectedRole(null);
   };
 
+
   const validateSingleRoleSelection = (roleId: number) => {
     const modules = roleModules[roleId]?.length ?? 0;
     const actions = roleActions[roleId]?.length ?? 0;
     return modules > 0 && actions > 0;
   };
 
+
   const handleSaveAssignments = async () => {
     const selectedIds = [
       ...new Set([...Object.keys(roleModules), ...Object.keys(roleActions)]),
     ].map(Number);
 
-    const invalid = selectedIds.filter((id) => !validateSingleRoleSelection(id));
+
+    const invalid = selectedIds.filter(
+      (id) => !validateSingleRoleSelection(id)
+    );
+
 
     if (invalid.length > 0) {
       const names = roles
@@ -687,17 +683,21 @@ export const useRoleManagement = (isReadOnly: boolean) => {
       return;
     }
 
+
     const assignments = Object.entries(roleActions).map(
       ([roleId, actionNames]) => {
         const selectedModules = roleModules[parseInt(roleId)] || [];
-        
+
+
         // Filter module-action pairs by BOTH selected modules AND selected actions
         const moduleActionIds = moduleActionPairs
-          .filter((pair) => 
-            actionNames.includes(pair.action_name) && 
-            selectedModules.includes(pair.module_name)
+          .filter(
+            (pair) =>
+              actionNames.includes(pair.action_name) &&
+              selectedModules.includes(pair.module_name)
           )
           .map((pair) => pair.module_action_pair_id);
+
 
         return {
           role_id: [parseInt(roleId)],
@@ -706,6 +706,7 @@ export const useRoleManagement = (isReadOnly: boolean) => {
         };
       }
     );
+
 
     try {
       setIsLoading(true);
@@ -719,6 +720,7 @@ export const useRoleManagement = (isReadOnly: boolean) => {
           },
         }
       );
+
 
       setMessage(
         `Assigned to roles: ${assignments.map((a) => a.role_id[0]).join(", ")}`
@@ -734,29 +736,36 @@ export const useRoleManagement = (isReadOnly: boolean) => {
     }
   };
 
+
   const handleSaveSingleAssignment = async (roleId: number) => {
     if (!validateSingleRoleSelection(roleId)) {
-      const roleName = roles.find(r => r.role_id === roleId)?.role_name || roleId.toString();
+      const roleName =
+        roles.find((r) => r.role_id === roleId)?.role_name || roleId.toString();
       setMessage(`Please select both modules and actions for: ${roleName}`);
       return;
     }
 
+
     const actionNames = roleActions[roleId] || [];
     const selectedModules = roleModules[roleId] || [];
-    
+
+
     // Filter module-action pairs by BOTH selected modules AND selected actions
     const moduleActionIds = moduleActionPairs
-      .filter((pair) => 
-        actionNames.includes(pair.action_name) && 
-        selectedModules.includes(pair.module_name)
+      .filter(
+        (pair) =>
+          actionNames.includes(pair.action_name) &&
+          selectedModules.includes(pair.module_name)
       )
       .map((pair) => pair.module_action_pair_id);
+
 
     const assignment = {
       role_id: [roleId],
       module_action_pair_ids: moduleActionIds,
       status: "active",
     };
+
 
     try {
       setIsLoading(true);
@@ -771,17 +780,20 @@ export const useRoleManagement = (isReadOnly: boolean) => {
         }
       );
 
-      const roleName = roles.find(r => r.role_id === roleId)?.role_name || roleId.toString();
+
+      const roleName =
+        roles.find((r) => r.role_id === roleId)?.role_name || roleId.toString();
       setMessage(`Successfully assigned to role: ${roleName}`);
       fetchRoleMappings();
-      
+
+
       // Clear selections for this role
-      setRoleModules(prev => {
+      setRoleModules((prev) => {
         const newState = { ...prev };
         delete newState[roleId];
         return newState;
       });
-      setRoleActions(prev => {
+      setRoleActions((prev) => {
         const newState = { ...prev };
         delete newState[roleId];
         return newState;
@@ -793,6 +805,7 @@ export const useRoleManagement = (isReadOnly: boolean) => {
       setIsLoading(false);
     }
   };
+
 
   const handleCreateRole = async (roleData: {
     role_name: string;
@@ -808,16 +821,19 @@ export const useRoleManagement = (isReadOnly: boolean) => {
         },
       });
       const newRole = data.data.role;
-      
+
+
       setRoles((prev) => [
         ...prev,
         { ...newRole, enabled: newRole.status === "active" },
       ]);
       setMessage(`Role "${roleData.role_name}" created successfully`);
-      
+
+
       // Refresh the current page data
       fetchRoles(currentPage, itemsPerPage);
-      
+
+
       // return true;
     } catch (error: any) {
       console.error("Failed to create role:", error);
@@ -832,14 +848,17 @@ export const useRoleManagement = (isReadOnly: boolean) => {
     }
   };
 
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+
 
   const handleItemsPerPageChange = (newItemsPerPage: number) => {
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1); // Reset to first page when changing items per page
   };
+
 
   return {
     roles,
@@ -874,3 +893,6 @@ export const useRoleManagement = (isReadOnly: boolean) => {
     validateSingleRoleSelection,
   };
 };
+
+
+

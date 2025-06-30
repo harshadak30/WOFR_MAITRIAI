@@ -1,4 +1,5 @@
 
+
 import { UserPlus, X, Upload, FileText, AlertCircle, CheckCircle } from "lucide-react";
 import { useState, useRef } from "react";
 import { useAuth } from "../../../../hooks/useAuth";
@@ -22,55 +23,78 @@ type CSVUploadModalProps = {
   modules?: any[];
 };
 
-const AddUserExcel: React.FC<CSVUploadModalProps> = ({
-  onClose,
-
-}) => {
+const AddUserExcel: React.FC<CSVUploadModalProps> = ({ onClose }) => {
   const { authState } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [csvData, setCsvData] = useState<UserData[]>([]);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadStep, setUploadStep] = useState<'upload' | 'preview' | 'result'>('upload');
+  const [apiError, setApiError] = useState<string>("");
 
-  // Sample CSV template
-  const downloadTemplate = () => {
-    const csvContent = "name,email\nJohn Doe,john.doe@company.com\nJane Smith,jane.smith@company.com";
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'user_template.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
+  // Download template for both CSV and Excel
+  const downloadTemplate = (format: 'csv' | 'excel') => {
+    const data = [
+      ['name', 'email'],
+      ['John Doe', 'john.doe@company.com'],
+      ['Jane Smith', 'jane.smith@company.com']
+    ];
+
+    if (format === 'csv') {
+      const csvContent = data.map(row => row.join(',')).join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'user_template.csv';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } else {
+      // For Excel, we'll create a simple CSV that Excel can open
+      const csvContent = data.map(row => row.join(',')).join('\n');
+      const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'user_template.xls';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
   };
 
-  // Parse CSV content
+  // Enhanced CSV parser that handles Excel exports
   const parseCSV = (text: string): UserData[] => {
     const lines = text.trim().split('\n');
-    const headers = lines[0].toLowerCase().split(',').map(h => h.trim());
+    if (lines.length < 2) {
+      throw new Error('File must contain at least a header row and one data row');
+    }
+
+    const headers = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/"/g, ''));
     
     const nameIndex = headers.findIndex(h => h.includes('name'));
     const emailIndex = headers.findIndex(h => h.includes('email'));
     
     if (nameIndex === -1 || emailIndex === -1) {
-      throw new Error('CSV must contain "name" and "email" columns');
+      throw new Error('File must contain "name" and "email" columns');
     }
 
     return lines.slice(1).map((line, index) => {
-      const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+      // Handle quoted values and commas within quotes
+      const values = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
+      const cleanValues = values.map(v => v.trim().replace(/^"|"$/g, ''));
+      
       return {
-        name: values[nameIndex] || '',
-        email: values[emailIndex] || '',
+        name: (cleanValues[nameIndex] || '').trim(),
+        email: (cleanValues[emailIndex] || '').trim(),
         row: index + 2 
       };
     }).filter(user => user.name || user.email); 
   };
 
-  // Validate users
+  // Enhanced validation with better error messages
   const validateUsers = (users: UserData[]): ValidationResult => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const nameRegex = /^[a-zA-Z\s]+$/;
+    const nameRegex = /^[a-zA-Z\s'-]+$/;
     const emails = new Set<string>();
     
     const valid: UserData[] = [];
@@ -82,17 +106,23 @@ const AddUserExcel: React.FC<CSVUploadModalProps> = ({
       // Name validation
       if (!user.name.trim()) {
         errors.push('Name is required');
+      } else if (user.name.length < 2) {
+        errors.push('Name must be at least 2 characters');
+      } else if (user.name.length > 50) {
+        errors.push('Name must be less than 50 characters');
       } else if (!nameRegex.test(user.name)) {
-        errors.push('Name should contain only letters and spaces');
+        errors.push('Name should contain only letters, spaces, hyphens and apostrophes');
       }
       
       // Email validation
       if (!user.email.trim()) {
         errors.push('Email is required');
+      } else if (user.email.length > 100) {
+        errors.push('Email must be less than 100 characters');
       } else if (!emailRegex.test(user.email)) {
         errors.push('Invalid email format');
       } else if (emails.has(user.email.toLowerCase())) {
-        errors.push('Duplicate email');
+        errors.push('Duplicate email in file');
       } else {
         emails.add(user.email.toLowerCase());
       }
@@ -107,46 +137,63 @@ const AddUserExcel: React.FC<CSVUploadModalProps> = ({
     return { valid, invalid };
   };
 
-  // Handle file upload
+  // Enhanced file upload handler
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      alert('Please upload a CSV file');
+    const fileName = file.name.toLowerCase();
+    const isValidFile = fileName.endsWith('.csv') || 
+                       fileName.endsWith('.xls') || 
+                       fileName.endsWith('.xlsx');
+
+    if (!isValidFile) {
+      setApiError('Please upload a CSV or Excel file (.csv, .xls, .xlsx)');
       return;
     }
 
+    setApiError("");
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const text = e.target?.result as string;
         const parsedData = parseCSV(text);
+        
+        if (parsedData.length === 0) {
+          throw new Error('No valid data found in file');
+        }
+        
+        if (parsedData.length > 100) {
+          throw new Error('Maximum 100 users allowed per upload');
+        }
+        
         const validation = validateUsers(parsedData);
         
         setCsvData(parsedData);
         setValidationResult(validation);
         setUploadStep('preview');
       } catch (error) {
-        alert(error instanceof Error ? error.message : 'Error parsing CSV file');
+        setApiError(error instanceof Error ? error.message : 'Error parsing file');
       }
     };
     reader.readAsText(file);
   };
 
-  // Create users from valid data
+  // Enhanced API call with better error handling
   const createUsersFromCSV = async () => {
     if (!validationResult?.valid.length) return;
 
     setIsLoading(true);
+    setApiError("");
+    
     try {
       const token = authState.token;
       const userData = validationResult.valid.map(user => ({
-        name: user.name,
-        email: user.email
+        name: user.name.trim(),
+        email: user.email.toLowerCase().trim()
       }));
 
-   await axios.post(
+      const response = await axios.post(
         "api/v1/tenant-user",
         userData,
         {
@@ -160,85 +207,88 @@ const AddUserExcel: React.FC<CSVUploadModalProps> = ({
 
       console.log("Users created successfully:", response.data);
       setUploadStep('result');
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating users:", error);
-      alert('Error creating users. Please try again.');
+      
+      // Enhanced error handling from API response
+      let errorMessage = 'Error creating users. Please try again.';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setApiError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-1 sm:p-2">
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
         
-        {/* Header */}
-        <div className="relative bg-gradient-to-r from-green-600 via-green-700 to-emerald-700 px-4 sm:px-6 py-4 sm:py-5">
+        {/* Compact Header */}
+        <div className="bg-gradient-to-r from-green-600 to-emerald-700 px-3 py-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-lg">
-                <Upload className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-              </div>
+            <div className="flex items-center gap-2">
+              <Upload className="h-4 w-4 text-white" />
               <div>
-                <h2 className="text-lg sm:text-xl font-bold text-white">Bulk User Upload</h2>
-                <p className="text-green-100 text-xs sm:text-sm font-medium">
-                  Upload CSV file to create multiple users
-                </p>
+                <h2 className="text-sm font-bold text-white">Bulk User Upload</h2>
+                <p className="text-green-100 text-xs">Upload CSV/Excel file</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              disabled={isLoading}
-              className="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 group"
-            >
-              <X className="h-5 w-5 text-white group-hover:rotate-90 transition-transform duration-200" />
+            <button onClick={onClose} disabled={isLoading} className="p-1 hover:bg-white/20 rounded">
+              <X className="h-4 w-4 text-white" />
             </button>
           </div>
         </div>
 
-        <div className="p-4 sm:p-6 max-h-[70vh] overflow-y-auto">
+        <div className="p-3 max-h-[75vh] overflow-y-auto">
+          {/* API Error Display */}
+          {apiError && (
+            <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-red-700">{apiError}</div>
+                <button onClick={() => setApiError("")} className="ml-auto text-red-500">
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          )}
+
           {uploadStep === 'upload' && (
-            <div className="space-y-6">
+            <div className="space-y-3">
               {/* Instructions */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-blue-800 mb-2">Instructions</h3>
-                <ul className="text-sm text-blue-700 space-y-1">
-                  <li>• Upload a CSV file with "name" and "email" columns</li>
-                  <li>• Each row should contain one user's information</li>
-                  <li>• Ensure email addresses are unique and valid</li>
-                  <li>• Names should contain only letters and spaces</li>
+              <div className="bg-blue-50 border border-blue-200 rounded p-2">
+                <h3 className="text-xs font-semibold text-blue-800 mb-1">Requirements</h3>
+                <ul className="text-xs text-blue-700 space-y-0.5">
+                  <li>• CSV/Excel with "name" and "email" columns</li>
+                  <li>• Max 100 users, unique emails, valid format</li>
                 </ul>
               </div>
 
-              {/* Template Download */}
-              <div className="text-center">
-                <button
-                  onClick={downloadTemplate}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                >
-                  <FileText className="h-4 w-4" />
-                  Download CSV Template
+              {/* Template Downloads */}
+              <div className="flex gap-2 justify-center">
+                <button onClick={() => downloadTemplate('csv')} className="text-xs px-2 py-1 text-blue-600 hover:bg-blue-50 rounded">
+                  <FileText className="h-3 w-3 inline mr-1" />CSV Template
+                </button>
+                <button onClick={() => downloadTemplate('excel')} className="text-xs px-2 py-1 text-green-600 hover:bg-green-50 rounded">
+                  <FileText className="h-3 w-3 inline mr-1" />Excel Template
                 </button>
               </div>
 
-              {/* File Upload Area */}
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-green-400 hover:bg-green-50 transition-colors">
-                <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-700 mb-2">Upload CSV File</h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  Drag and drop your file here, or click to browse
-                </p>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".csv"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-                >
+              {/* Upload Area */}
+              <div className="border-2 border-dashed border-gray-300 rounded p-4 text-center hover:border-green-400">
+                <Upload className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+                <h3 className="text-sm font-medium text-gray-700 mb-1">Upload File</h3>
+                <p className="text-xs text-gray-500 mb-2">CSV or Excel file</p>
+                <input ref={fileInputRef} type="file" accept=".csv,.xls,.xlsx" onChange={handleFileUpload} className="hidden" />
+                <button onClick={() => fileInputRef.current?.click()} className="px-3 py-1.5 bg-green-600 text-white rounded text-sm">
                   Choose File
                 </button>
               </div>
@@ -246,41 +296,41 @@ const AddUserExcel: React.FC<CSVUploadModalProps> = ({
           )}
 
           {uploadStep === 'preview' && validationResult && (
-            <div className="space-y-6">
+            <div className="space-y-3">
               {/* Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-600">{csvData.length}</div>
-                  <div className="text-sm text-blue-800">Total Users</div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-blue-50 p-2 rounded text-center">
+                  <div className="text-lg font-bold text-blue-600">{csvData.length}</div>
+                  <div className="text-xs text-blue-800">Total</div>
                 </div>
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{validationResult.valid.length}</div>
-                  <div className="text-sm text-green-800">Valid Users</div>
+                <div className="bg-green-50 p-2 rounded text-center">
+                  <div className="text-lg font-bold text-green-600">{validationResult.valid.length}</div>
+                  <div className="text-xs text-green-800">Valid</div>
                 </div>
-                <div className="bg-red-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-red-600">{validationResult.invalid.length}</div>
-                  <div className="text-sm text-red-800">Invalid Users</div>
+                <div className="bg-red-50 p-2 rounded text-center">
+                  <div className="text-lg font-bold text-red-600">{validationResult.invalid.length}</div>
+                  <div className="text-xs text-red-800">Invalid</div>
                 </div>
               </div>
 
               {/* Valid Users */}
               {validationResult.valid.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-green-700 mb-3 flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5" />
-                    Valid Users ({validationResult.valid.length})
+                  <h3 className="text-sm font-semibold text-green-700 mb-1 flex items-center gap-1">
+                    <CheckCircle className="h-3 w-3" />Valid Users ({validationResult.valid.length})
                   </h3>
-                  <div className="bg-green-50 rounded-lg overflow-hidden">
-                    <div className="max-h-40 overflow-y-auto">
-                      {validationResult.valid.map((user, index) => (
-                        <div key={index} className="px-4 py-2 border-b border-green-200 last:border-b-0">
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium">{user.name}</span>
-                            <span className="text-sm text-gray-600">{user.email}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="bg-green-50 rounded max-h-24 overflow-y-auto">
+                    {validationResult.valid.slice(0, 5).map((user, index) => (
+                      <div key={index} className="px-2 py-1 border-b border-green-200 last:border-b-0 flex justify-between text-xs">
+                        <span className="font-medium truncate">{user.name}</span>
+                        <span className="text-gray-600 truncate ml-2">{user.email}</span>
+                      </div>
+                    ))}
+                    {validationResult.valid.length > 5 && (
+                      <div className="px-2 py-1 text-xs text-green-600 text-center">
+                        +{validationResult.valid.length - 5} more...
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -288,26 +338,27 @@ const AddUserExcel: React.FC<CSVUploadModalProps> = ({
               {/* Invalid Users */}
               {validationResult.invalid.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-red-700 mb-3 flex items-center gap-2">
-                    <AlertCircle className="h-5 w-5" />
-                    Invalid Users ({validationResult.invalid.length})
+                  <h3 className="text-sm font-semibold text-red-700 mb-1 flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />Invalid Users ({validationResult.invalid.length})
                   </h3>
-                  <div className="bg-red-50 rounded-lg overflow-hidden">
-                    <div className="max-h-40 overflow-y-auto">
-                      {validationResult.invalid.map((user, index) => (
-                        <div key={index} className="px-4 py-2 border-b border-red-200 last:border-b-0">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <div className="font-medium">{user.name || 'No name'}</div>
-                              <div className="text-sm text-gray-600">{user.email || 'No email'}</div>
-                            </div>
-                            <div className="text-xs text-red-600">
-                              Row {user.row}: {user.errors?.join(', ')}
-                            </div>
+                  <div className="bg-red-50 rounded max-h-24 overflow-y-auto">
+                    {validationResult.invalid.slice(0, 3).map((user, index) => (
+                      <div key={index} className="px-2 py-1 border-b border-red-200 last:border-b-0">
+                        <div className="flex justify-between items-start text-xs">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">{user.name || 'No name'}</div>
+                            <div className="text-gray-600 truncate">{user.email || 'No email'}</div>
                           </div>
+                          <div className="text-red-600 ml-2">Row {user.row}</div>
                         </div>
-                      ))}
-                    </div>
+                        <div className="text-xs text-red-600 mt-0.5">{user.errors?.join(', ')}</div>
+                      </div>
+                    ))}
+                    {validationResult.invalid.length > 3 && (
+                      <div className="px-2 py-1 text-xs text-red-600 text-center">
+                        +{validationResult.invalid.length - 3} more errors...
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -315,19 +366,11 @@ const AddUserExcel: React.FC<CSVUploadModalProps> = ({
           )}
 
           {uploadStep === 'result' && (
-            <div className="text-center py-8">
-              <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">Users Created Successfully!</h3>
-              <p className="text-gray-600 mb-6">
-                {validationResult?.valid.length} users have been created successfully.
-              </p>
-              <button
-                onClick={() => {
-                  onClose();
-                  window.location.reload();
-                }}
-                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-              >
+            <div className="text-center py-4">
+              <CheckCircle className="h-10 w-10 text-green-500 mx-auto mb-2" />
+              <h3 className="text-lg font-semibold text-gray-800 mb-1">Success!</h3>
+              <p className="text-sm text-gray-600 mb-3">{validationResult?.valid.length} users created.</p>
+              <button onClick={() => { onClose(); window.location.reload(); }} className="px-4 py-2 bg-green-600 text-white rounded text-sm">
                 Continue
               </button>
             </div>
@@ -336,34 +379,24 @@ const AddUserExcel: React.FC<CSVUploadModalProps> = ({
 
         {/* Action Footer */}
         {uploadStep === 'preview' && (
-          <div className="bg-gray-50 px-4 sm:px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row gap-3 sm:gap-2 sm:justify-between">
-            <button
-              onClick={() => setUploadStep('upload')}
-              className="w-full sm:w-auto px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
-            >
-              Back to Upload
+          <div className="bg-gray-50 px-3 py-2 border-t flex gap-2 justify-between">
+            <button onClick={() => setUploadStep('upload')} className="px-3 py-1.5 border border-gray-300 rounded text-sm text-gray-700">
+              Back
             </button>
             <div className="flex gap-2">
-              <button
-                onClick={onClose}
-                className="w-full sm:w-auto px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
-              >
+              <button onClick={onClose} className="px-3 py-1.5 border border-gray-300 rounded text-sm text-gray-700">
                 Cancel
               </button>
-              <button
-                onClick={createUsersFromCSV}
-                disabled={!validationResult?.valid.length || isLoading}
-                className="w-full sm:w-auto px-4 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg text-sm font-medium hover:from-green-700 hover:to-green-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
-              >
+              <button onClick={createUsersFromCSV} disabled={!validationResult?.valid.length || isLoading} className="px-3 py-1.5 bg-green-600 text-white rounded text-sm disabled:bg-gray-400 flex items-center gap-1">
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent"></div>
                     Creating...
                   </>
                 ) : (
                   <>
-                    <UserPlus className="h-4 w-4" />
-                    Create {validationResult?.valid.length || 0} Users
+                    <UserPlus className="h-3 w-3" />
+                    Create {validationResult?.valid.length || 0}
                   </>
                 )}
               </button>
@@ -376,404 +409,3 @@ const AddUserExcel: React.FC<CSVUploadModalProps> = ({
 };
 
 export default AddUserExcel;
-<<<<<<< HEAD
-
-
-
-
-// import React, { useState, useRef } from 'react';
-// import { FileInput, X, User, Mail, Check, AlertTriangle, UserPlus } from "lucide-react";
-// import { useAuth } from "../../../../hooks/useAuth";
-// import axios from "../../../../helper/axios";
-// import * as XLSX from 'xlsx';
-
-// type AddExcelUserProps = {
-//   onClose: () => void;
-//   onUsersImported: () => void; // Callback to refresh user table after import
-// };
-
-// interface ExcelUser {
-//   name: string;
-//   email: string;
-// }
-
-// const AddExcelUser: React.FC<AddExcelUserProps> = ({ onClose, onUsersImported }) => {
-//   const { authState } = useAuth();
-//   const [file, setFile] = useState<File | null>(null);
-//   const [validationMessage, setValidationMessage] = useState<string>("");
-//   const [isValid, setIsValid] = useState<boolean | null>(null);
-//   const [isLoading, setIsLoading] = useState(false);
-//   const [importResults, setImportResults] = useState<{
-//     success: ExcelUser[];
-//     errors: { row: number; error: string }[];
-//   } | null>(null);
-//   const fileInputRef = useRef<HTMLInputElement>(null);
-
-//   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     const selectedFile = e.target.files?.[0];
-//     if (!selectedFile) return;
-
-//     setFile(selectedFile);
-//     validateFile(selectedFile);
-//     setImportResults(null); // Reset previous import results
-//   };
-
-//   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-//     e.preventDefault();
-//     e.stopPropagation();
-
-//     const droppedFile = e.dataTransfer.files?.[0];
-//     if (droppedFile) {
-//       setFile(droppedFile);
-//       validateFile(droppedFile);
-//       setImportResults(null); // Reset previous import results
-//     }
-//   };
-
-//   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-//     e.preventDefault();
-//     e.stopPropagation();
-//   };
-
-//   const validateFile = (file: File) => {
-//     if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
-//       setValidationMessage("Please upload a valid Excel file (.xlsx or .xls)");
-//       setIsValid(false);
-//       return;
-//     }
-
-//     setValidationMessage("File format appears valid.");
-//     setIsValid(true);
-//   };
-
-//   const processExcelFile = async (file: File): Promise<ExcelUser[]> => {
-//     return new Promise((resolve, reject) => {
-//       const reader = new FileReader();
-
-//       reader.onload = (e) => {
-//         try {
-//           const data = new Uint8Array(e.target?.result as ArrayBuffer);
-//           const workbook = XLSX.read(data, { type: 'array' });
-//           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-//           const jsonData = XLSX.utils.sheet_to_json<Record<string, string>>(firstSheet);
-
-//           // Extract name and email from columns (assuming first column is name, second is email)
-//           const users = jsonData.map((row, index) => {
-//             const columns = Object.values(row);
-//             return {
-//               name: columns[0]?.toString() || '',
-//               email: columns[1]?.toString() || ''
-//             };
-//           }).filter(user => user.name && user.email); // Filter out empty rows
-
-//           resolve(users);
-//         } catch (error) {
-//           reject(error);
-//         }
-//       };
-
-//       reader.onerror = (error) => {
-//         reject(error);
-//       };
-
-//       reader.readAsArrayBuffer(file);
-//     });
-//   };
-
-//   const validateUsers = (users: ExcelUser[]) => {
-//     const errors: { row: number; error: string }[] = [];
-//     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-//     const nameRegex = /^[a-zA-Z\s]+$/;
-
-//     // Check for duplicates
-//     const emailSet = new Set<string>();
-//     const nameSet = new Set<string>();
-
-//     users.forEach((user, index) => {
-//       if (!user.name.trim()) {
-//         errors.push({ row: index + 2, error: "Name is required" });
-//       } else if (!nameRegex.test(user.name)) {
-//         errors.push({ row: index + 2, error: "Name should contain only letters and spaces" });
-//       } else if (nameSet.has(user.name.toLowerCase())) {
-//         errors.push({ row: index + 2, error: "Duplicate name found" });
-//       } else {
-//         nameSet.add(user.name.toLowerCase());
-//       }
-
-//       if (!user.email.trim()) {
-//         errors.push({ row: index + 2, error: "Email is required" });
-//       } else if (!emailRegex.test(user.email)) {
-//         errors.push({ row: index + 2, error: "Invalid email format" });
-//       } else if (emailSet.has(user.email.toLowerCase())) {
-//         errors.push({ row: index + 2, error: "Duplicate email found" });
-//       } else {
-//         emailSet.add(user.email.toLowerCase());
-//       }
-//     });
-
-//     return errors;
-//   };
-
-//   const handleImport = async () => {
-//     if (!file || !isValid) return;
-
-//     setIsLoading(true);
-//     try {
-//       // Process the Excel file
-//       const users = await processExcelFile(file);
-
-//       // Validate the users
-//       const validationErrors = validateUsers(users);
-
-//       if (validationErrors.length > 0) {
-//         setValidationMessage(`Found ${validationErrors.length} error(s) in the Excel file. Please fix them before importing.`);
-//         setIsValid(false);
-//         setImportResults({
-//           success: [],
-//           errors: validationErrors
-//         });
-//         return;
-//       }
-
-//       // If validation passes, send to API
-//       const token = authState.token;
-//       const response = await axios.post(
-//         "api/v1/tenant-user",
-//         users.map(user => ({
-//           name: user.name,
-//           email: user.email,
-//         })),
-//         {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//             Accept: "application/json",
-//             "Content-Type": "application/json",
-//           },
-//         }
-//       );
-//       // window.location.reload();
-//       console.log("Users imported successfully:", response.data);
-//       setImportResults({
-//         success: users,
-//         errors: []
-//       });
-
-//       // Refresh the user table
-//       // onUsersImported();
-
-//     } catch (error) {
-//       console.error("Error importing users:", error);
-//       console.log("Full error object:", JSON.stringify(error, null, 2));
-
-//       setValidationMessage("An error occurred while importing users. Please try again.");
-//       setIsValid(false);
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
-//       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md sm:max-w-lg max-h-[95vh] overflow-y-auto animate-in fade-in-0 zoom-in-95 duration-200">
-
-//         {/* Header */}
-//         <div className=" bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 px-4 sm:px-6 py-4 sm:py-5 sticky top-0 z-10">
-//           <div className="flex items-center justify-between">
-//             <div className="flex items-center gap-3">
-//               <div className="p-2 bg-white/20 rounded-lg">
-//                 <UserPlus className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-//               </div>
-//               <div>
-//                 <h2 className="text-lg sm:text-xl font-bold text-white">Import Users from Excel</h2>
-//                 <p className="text-blue-100 text-xs sm:text-sm font-medium">
-//                   Upload an Excel file with user data
-//                 </p>
-//               </div>
-//             </div>
-//             <button
-//               onClick={onClose}
-//               disabled={isLoading}
-//               className="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 group"
-//             >
-//               <X className="h-5 w-5 text-white group-hover:rotate-90 transition-transform duration-200" />
-//             </button>
-//           </div>
-//         </div>
-
-//         {/* Form Content */}
-//         <div className="p-4 sm:p-6 space-y-6">
-//           <div
-//             className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-500 transition-colors duration-200 cursor-pointer"
-//             onClick={() => fileInputRef.current?.click()}
-//             onDrop={handleDrop}
-//             onDragOver={handleDragOver}
-//           >
-//             <div className="flex flex-col items-center justify-center gap-3">
-//               <FileInput className="h-10 w-10 text-gray-400" />
-//               <div className="text-sm text-gray-600">
-//                 {file ? (
-//                   <span className="font-medium text-blue-600">{file.name}</span>
-//                 ) : (
-//                   <>
-//                     <span className="font-medium">Drag & drop your Excel file here, or </span>
-//                     <span className="relative cursor-pointer text-blue-600 hover:text-blue-800">
-//                       browse
-//                     </span>
-//                   </>
-//                 )}
-//               </div>
-//               <p className="text-xs text-gray-500">
-//                 Excel files only (.xlsx, .xls)
-//               </p>
-//             </div>
-//             <input
-//               ref={fileInputRef}
-//               type="file"
-//               className="hidden"
-//               accept=".xlsx,.xls"
-//               onChange={handleFileChange}
-//             />
-//           </div>
-
-//           {/* Validation message */}
-//           {validationMessage && (
-//             <div className={`p-3 rounded-lg flex items-start gap-3 ${isValid ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"
-//               }`}>
-//               {isValid ? (
-//                 <Check className="h-5 w-5 mt-0.5 text-green-500" />
-//               ) : (
-//                 <AlertTriangle className="h-5 w-5 mt-0.5 text-red-500" />
-//               )}
-//               <div className="text-sm">
-//                 <p className="font-medium">
-//                   {isValid ? "Validation passed" : "Validation error"}
-//                 </p>
-//                 <p>{validationMessage}</p>
-//               </div>
-//             </div>
-//           )}
-
-//           {/* Import Results */}
-//           {importResults && (
-//             <div className="space-y-4">
-//               {importResults.success.length > 0 && (
-//                 <div className="bg-green-50 p-3 rounded-lg text-green-800">
-//                   <div className="flex items-start gap-3">
-//                     <Check className="h-5 w-5 mt-0.5 text-green-500 flex-shrink-0" />
-//                     <div>
-//                       <p className="font-medium">Successfully imported {importResults.success.length} users</p>
-//                       <div className="mt-2 max-h-40 overflow-y-auto">
-//                         {importResults.success.map((user, index) => (
-//                           <div key={index} className="text-xs py-1 border-b border-green-100">
-//                             <span className="font-medium">{user.name}</span> - {user.email}
-//                           </div>
-//                         ))}
-//                       </div>
-//                     </div>
-//                   </div>
-//                 </div>
-//               )}
-
-//               {importResults.errors.length > 0 && (
-//                 <div className="bg-red-50 p-3 rounded-lg text-red-800">
-//                   <div className="flex items-start gap-3">
-//                     <AlertTriangle className="h-5 w-5 mt-0.5 text-red-500 flex-shrink-0" />
-//                     <div>
-//                       <p className="font-medium">{importResults.errors.length} errors found</p>
-//                       <div className="mt-2 max-h-40 overflow-y-auto text-xs">
-//                         <table className="w-full">
-//                           <thead>
-//                             <tr className="border-b border-red-200">
-//                               <th className="text-left py-1 px-2">Row</th>
-//                               <th className="text-left py-1 px-2">Error</th>
-//                             </tr>
-//                           </thead>
-//                           <tbody>
-//                             {importResults.errors.map((error, index) => (
-//                               <tr key={index} className="border-b border-red-100">
-//                                 <td className="py-1 px-2">{error.row}</td>
-//                                 <td className="py-1 px-2">{error.error}</td>
-//                               </tr>
-//                             ))}
-//                           </tbody>
-//                         </table>
-//                       </div>
-//                     </div>
-//                   </div>
-//                 </div>
-//               )}
-//             </div>
-//           )}
-
-//           {/* Requirements */}
-//           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-//             <h3 className="text-sm font-medium text-gray-700 mb-2">File Requirements:</h3>
-//             <ul className="text-xs text-gray-600 space-y-1.5">
-//               <li className="flex items-start gap-2">
-//                 <Check className="h-3 w-3 mt-0.5 text-green-500 flex-shrink-0" />
-//                 <span>First column: Full name (letters and spaces only)</span>
-//               </li>
-//               <li className="flex items-start gap-2">
-//                 <Check className="h-3 w-3 mt-0.5 text-green-500 flex-shrink-0" />
-//                 <span>Second column: Email address (valid format)</span>
-//               </li>
-//               <li className="flex items-start gap-2">
-//                 <Check className="h-3 w-3 mt-0.5 text-green-500 flex-shrink-0" />
-//                 <span>No duplicate names or emails</span>
-//               </li>
-//               {/* <li className="flex items-start gap-2">
-//                 <Check className="h-3 w-3 mt-0.5 text-green-500 flex-shrink-0" />
-//                 <span>No empty rows</span>
-//               </li> */}
-//               <li className="flex items-start gap-2">
-//                 <Check className="h-3 w-3 mt-0.5 text-green-500 flex-shrink-0" />
-//                 <span>First row will be treated as header and skipped</span>
-//               </li>
-//             </ul>
-//           </div>
-//         </div>
-
-//         {/* Action Footer */}
-//         <div className="bg-gray-50 px-4 sm:px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row gap-3 sm:gap-2 sm:justify-end sticky bottom-0">
-//           <button
-//             className="w-full cursor-pointer sm:w-auto px-4 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 hover:border-gray-400 transition-all duration-200 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-//             onClick={() => {
-//               if (importResults && importResults.success.length > 0) {
-//                 window.location.reload(); // Reload if successful import
-//               } else {
-//                 onClose(); // Otherwise just close the modal
-//               }
-//             }}
-//             disabled={isLoading}
-//           >
-//             {importResults ? 'Close' : 'Cancel'}
-//           </button>
-
-//           {!importResults && (
-//             <button
-//               className="w-full cursor-pointer sm:w-auto px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-sm font-medium hover:from-blue-700 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center gap-2 shadow-lg"
-//               onClick={handleImport}
-//               disabled={!file || !isValid || isLoading}
-//             >
-//               {isLoading ? (
-//                 <>
-//                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-//                   Importing...
-//                 </>
-//               ) : (
-//                 <>
-//                   <FileInput className="h-4 w-4" />
-//                   Import Users
-//                 </>
-//               )}
-//             </button>
-//           )}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default AddExcelUser;
-=======
->>>>>>> 4250042e017b110896f28dee5744c68b9adf2920

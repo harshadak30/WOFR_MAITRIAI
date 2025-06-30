@@ -33,7 +33,7 @@ export const fetchOrganizations = async (
       address: tenant.address,
       country: tenant.country === "N/A" ? "" : tenant.country,
       zip_postal_code: tenant.zip_postal_code === "N/A" ? "" : tenant.zip_postal_code,
-      date_of_incorporation: tenant.date_of_incorporation,
+      incorporation_date: tenant.incorporation_date,
       created_at: tenant.created_at,
       updated_at: tenant.updated_at,
     }));
