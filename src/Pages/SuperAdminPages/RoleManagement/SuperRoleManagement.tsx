@@ -65,6 +65,7 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
   // Enhanced data processing with better grouping
   const masterAdminFlattenedData = useMemo(() => {
     const grouped = new Map<string, any>();
+console.log("MasterAdminRoleMappings", MasterAdminRoleMappings);
 
     MasterAdminRoleMappings?.forEach((moduleMapping: any) => {
       const roleData = moduleMapping?.module_data;

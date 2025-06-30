@@ -839,7 +839,7 @@ export const useRoleManagement = (isReadOnly: boolean) => {
       console.error("Failed to create role:", error);
       setMessage(
         `Failed to create role: ${
-          error?.response?.data?.meta?.message || "Unknown error"
+          error?.response?.data?.detail || "Unknown error"
         }`
       );
       // return false;
