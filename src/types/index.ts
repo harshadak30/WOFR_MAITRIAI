@@ -44,6 +44,8 @@ export interface UserData {
   enabled: boolean;
   tenant_user_id: string;
   tenant_id: string;
+  // status:string;
+    status: "active" | "inactive";
 }
 
 // Type definitions for the Lease Management System

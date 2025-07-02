@@ -174,15 +174,12 @@ const ExternalOrganizations: React.FC<ExternalOrganizationUserProps> = ({
             axios.get("api/users/v1/all-users", {
               headers: { Authorization: `Bearer ${token}` },
             }),
-            axios.get(
-              `api/v1/modules`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  Accept: "application/json",
-                },
-              }
-            ),
+            axios.get(`api/v1/modules`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+              },
+            }),
             axios.get("api/v1/user-role-assignments", {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -357,15 +354,46 @@ const ExternalOrganizations: React.FC<ExternalOrganizationUserProps> = ({
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredUsers.slice(indexOfFirstItem, indexOfLastItem);
 
-  const handleToggleChange = (id: number) => {
+ 
+  const handleToggleChange = async (user: UserData) => {
     if (isReadOnly) return;
-    setUsers(
-      users.map((user) =>
-        user.id === id ? { ...user, enabled: !user.enabled } : user
-      )
-    );
-  };
+      console.log(user.user_id);
+    try {
+      const newStatus = user.status === "active" ? "inactive" : "active";
 
+      await axios.patch(
+        `api/v1/user-status?user_id=${user.user_id}`,
+        {}, 
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            accept: "application/json",
+          },
+        }
+      );
+
+      setUsers(
+        users.map((u) =>
+          u.user_id === user.user_id ? { ...u, status: newStatus } : u
+        )
+      );
+
+      toast.success(`User status updated to ${newStatus}`, {
+        position: "top-right",
+        duration: 2000,
+      });
+    } catch (error) {
+      console.log("Error updating user status:", error);
+
+      const errorMessage =
+        response?.data?.detail || "Failed to update user status";
+
+      toast.error(errorMessage, {
+        position: "top-right",
+        duration: 2000,
+      });
+    }
+  };
   const handleResetModules = (userId: number) => {
     if (isReadOnly) return;
     setUserSelectedModules({
@@ -588,8 +616,8 @@ const ExternalOrganizations: React.FC<ExternalOrganizationUserProps> = ({
                       <td className="px-6 py-4 text-center">
                         <div className="relative inline-block">
                           <Toggle
-                            enabled={user.enabled}
-                            onChange={() => handleToggleChange(user.id)}
+                            enabled={user.status === "active"}
+                            onChange={() => handleToggleChange(user)}
                             className={
                               isReadOnly ? "opacity-50 cursor-not-allowed" : ""
                             }

@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import {  Edit2, Trash2 } from "lucide-react";
+import axios from "../../../helper/axios";
+
 const defaultAssetGroups = [
   "Aircrafts or Helicopters",
   "Building",
@@ -101,6 +103,32 @@ const AssetMaster: React.FC = () => {
       )
     );
   };
+   const token = localStorage.getItem("token");
+  
+    const [organizationId, setOrganizationId] = useState("");
+    const getId = async () => {
+      try {
+        const response = await axios.get(
+          "/api/v1/tenant?page=1&limit=10&sort_by=created_at&sort_order=asc",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log(response.data.data);
+  
+        console.log(response.data.data.tenants[0].tenant_id);
+        setOrganizationId(response.data.data.tenants[0].tenant_id);
+      } catch (e) {
+        console.log(e);
+      }
+    };
+    useEffect(() => {
+      getId();
+    }, []);
+
 
   const handleCancel = () => {
     setShowForm(false);

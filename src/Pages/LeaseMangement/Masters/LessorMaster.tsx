@@ -1,5 +1,6 @@
 import { useForm, Controller } from "react-hook-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "../../../helper/axios";
 
 interface FormData {
   Lessor_Name: string;
@@ -63,36 +64,117 @@ const LessorMaster: React.FC = () => {
   } = useForm<FormData>({
     mode: "onChange",
   });
+  const token = localStorage.getItem("token");
+
+  const [organizationId, setOrganizationId] = useState("");
+  const getId = async () => {
+    try {
+      const response = await axios.get(
+        "/api/v1/tenant?page=1&limit=10&sort_by=created_at&sort_order=asc",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log(response.data.data);
+
+      console.log(response.data.data.tenants[0].tenant_id);
+      setOrganizationId(response.data.data.tenants[0].tenant_id);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+  useEffect(() => {
+    getId();
+  }, []);
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
+    console.log(data);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found");
+      }
 
-    await new Promise((resolve) => setTimeout(resolve, 800));
+      const requestData = {
+        organization_id: organizationId,
+        vendor_code: data.Vendor_Code,
+        lessor_name: data.Lessor_Name,
+        vat_applicable: data.VAT_application,
+        tax_deduction_applicable: data.Tax_deduction_Application,
+        email: data.Email,
+        related_party_relationship:
+          relationshipTypes.find(
+            (type) => type.id.toString() === data.relatedPartyRelationship
+          )?.name || "Not specified",
+        vendor_bank_name: data.Vendor_bank_name,
+        vat_registration_number: data.Vendor_registration_number,
+        tax_identification_number: data.Tax_Identification_number,
+        vendor_bank_account_number: data.Vendor_Bank_Account_Number,
+        status: "active",
+      };
 
-    const newEntity: LessorData = {
-      id: entities.length + 1,
-      Lessor_Name: data.Lessor_Name,
-      Vendor_Code: data.Vendor_Code,
-      VAT_application: data.VAT_application,
-      Email: data.Email,
-      Tax_deduction_Application: data.Tax_deduction_Application,
-      Vendor_bank_name: data.Vendor_bank_name,
-      Vendor_registration_number: data.Vendor_registration_number,
-      Tax_Identification_number: data.Tax_Identification_number,
-      Vendor_Bank_Account_Number: data.Vendor_Bank_Account_Number,
-      relatedPartyRelationship:
-        relationshipTypes.find(
-          (type) => type.id.toString() === data.relatedPartyRelationship
-        )?.name || "Not specified",
-      createdAt: new Date().toLocaleDateString(),
-    };
+      const response = await axios.post("/api/v1/lease-lessor", requestData, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    setEntities((prev) => [...prev, newEntity]);
-    reset();
-    setIsSubmitting(false);
-    setIsModalOpen(false);
+      // Check if response indicates success (status code 2xx)
+      if (response.status >= 200 && response.status < 300) {
+        const responseData = response.data;
+
+        const newEntity: LessorData = {
+          id: entities.length + 1,
+          Lessor_Name: data.Lessor_Name,
+          Vendor_Code: data.Vendor_Code,
+          VAT_application: data.VAT_application,
+          Email: data.Email,
+          Tax_deduction_Application: data.Tax_deduction_Application,
+          Vendor_bank_name: data.Vendor_bank_name,
+          Vendor_registration_number: data.Vendor_registration_number,
+          Tax_Identification_number: data.Tax_Identification_number,
+          Vendor_Bank_Account_Number: data.Vendor_Bank_Account_Number,
+          relatedPartyRelationship:
+            relationshipTypes.find(
+              (type) => type.id.toString() === data.relatedPartyRelationship
+            )?.name || "Not specified",
+          createdAt: new Date().toLocaleDateString(),
+        };
+
+        setEntities((prev) => [...prev, newEntity]);
+        reset();
+        setIsModalOpen(false);
+
+        // Optional: Show success message
+        console.log("Lessor created successfully:", responseData);
+      } else {
+        // Handle non-2xx responses
+        throw new Error(response.data?.message || "Failed to create lessor");
+      }
+    } catch (error: any) {
+      console.log(error);
+      console.error("Error creating lessor:", {
+        message: error.message,
+        response: error.response?.data,
+        stack: error.stack,
+      });
+
+      // Show user-friendly error message
+      // You could use a toast notification here
+      alert(
+        error.response?.data?.detail ||
+          error.message ||
+          "Failed to create lessor"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
   const handleDelete = (id: number) => {
     setEntities((prev) => prev.filter((entity) => entity.id !== id));
   };
@@ -217,7 +299,7 @@ const LessorMaster: React.FC = () => {
                         <h3 className="text-lg font-medium text-gray-900 mb-2">
                           No Lessor found
                         </h3>
-                   
+
                         <button
                           onClick={openModal}
                           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"

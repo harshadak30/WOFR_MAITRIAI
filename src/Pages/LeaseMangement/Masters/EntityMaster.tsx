@@ -1,5 +1,6 @@
 import { useForm, Controller } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "../../../helper/axios";
 
 interface FormData {
   name: string;
@@ -51,12 +52,145 @@ const EntityMaster: React.FC = () => {
     formState: { errors },
   } = useForm<FormData>();
 
-  const onSubmit = async (data: FormData) => {
-    setIsSubmitting(true);
+  // const onSubmit = async (data: FormData) => {
+  //   setIsSubmitting(true);
+  //   console.log(data)
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
+  //   // Simulate API delay
+  //   await new Promise((resolve) => setTimeout(resolve, 800));
 
+  //   const newEntity: EntityData = {
+  //     id: entities.length + 1,
+  //     name: data.name,
+  //     functionalCurrency: data.Industry_Sector || "Not specified",
+  //     financialStart: data.incorporation_date || "Not specified",
+  //     OwnerShipShare: data.Ownership_share || "Not specified",
+  //     departName: data.Tax_ID || "Not specified",
+  //     parentOrganization:
+  //       data.Parent_Name === "own"
+  //         ? "Own Organization"
+  //         : organizations.find((org) => org.tenant_id === data.Parent_Name)
+  //             ?.name || "Not specified",
+  //     relatedPartyRelationship:
+  //       relationshipTypes.find(
+  //         (type) => type.id.toString() === data.Relationship_Type
+  //       )?.name || "Not specified",
+  //     createdAt: new Date().toLocaleDateString(),
+  //   };
+
+  //   setEntities((prev) => [...prev, newEntity]);
+  //   reset();
+  //   setIsSubmitting(false);
+  //   setIsModalOpen(false);
+  // };
+// const onSubmit = async (data: FormData) => {
+//   setIsSubmitting(true);
+//  console.log(token);
+//   try {
+//     // Prepare the request body according to the API requirements
+//     const requestBody = {
+//       organization_id: organizationId,
+//       entity_name: data.name,
+//       functional_currency: data.Industry_Sector,
+//       financial_start_date: data.incorporation_date 
+//         ? new Date(data.incorporation_date).toISOString() 
+//         : new Date().toISOString(),
+//       ownership_name_percent: data.Ownership_share || "0",
+//       relationship_type: relationshipTypes.find(
+//         (type) => type.id.toString() === data.Relationship_Type
+//       )?.name || "Not specified",
+//       related_to: data.Parent_Name === "own" 
+//         ? "Own Organization" 
+//         : organizations.find((org) => org.tenant_id === data.Parent_Name)?.name || "Not specified",
+//       department_name: data.Tax_ID || "Not specified",
+//       status: "active"
+//     };
+
+//     // Make the API call
+//     const response = await axios.post('/api/v1/entities',{
+//       requestBody
+//     }, {
+     
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Authorization': `Bearer ${token}`
+//       },
+//     });
+
+//     if (!response.ok) {
+//       throw new Error('Failed to create entity');
+//     }
+
+//     console.log(response);
+
+//     // Update local state with the new entity
+//     const newEntity: EntityData = {
+//       id: entities.length + 1,
+//       name: data.name,
+//       functionalCurrency: data.Industry_Sector || "Not specified",
+//       financialStart: data.incorporation_date || "Not specified",
+//       OwnerShipShare: data.Ownership_share || "Not specified",
+//       departName: data.Tax_ID || "Not specified",
+//       parentOrganization: 
+//         data.Parent_Name === "own"
+//           ? "Own Organization"
+//           : organizations.find((org) => org.tenant_id === data.Parent_Name)
+//               ?.name || "Not specified",
+//       relatedPartyRelationship:
+//         relationshipTypes.find(
+//           (type) => type.id.toString() === data.Relationship_Type
+//         )?.name || "Not specified",
+//       createdAt: new Date().toLocaleDateString(),
+//     };
+
+//     setEntities((prev) => [...prev, newEntity]);
+//     reset();
+//     setIsModalOpen(false);
+//   } catch (error) {
+//     console.error('Error creating entity:', error.response.data);
+//   } finally {
+//     setIsSubmitting(false);
+//   }
+// };
+const onSubmit = async (data: FormData) => {
+  setIsSubmitting(true);
+  
+  try {
+    // Verify token exists
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    // Prepare the request body
+    const requestData = {
+      organization_id: organizationId,
+      entity_name: data.name,
+      functional_currency: data.Industry_Sector,
+      financial_start_date: data.incorporation_date 
+        ? new Date(data.incorporation_date).toISOString() 
+        : new Date().toISOString(),
+      ownership_name_percent: data.Ownership_share || "0",
+      relationship_type: relationshipTypes.find(
+        (type) => type.id.toString() === data.Relationship_Type
+      )?.name || "Not specified",
+      related_to: data.Parent_Name === "own" 
+        ? "Own Organization" 
+        : organizations.find((org) => org.tenant_id === data.Parent_Name)?.name || "Not specified",
+      department_name: data.Tax_ID || "Not specified",
+      status: "active"
+    };
+
+    // Make the API call
+    const response = await axios.post('/api/v1/entities', requestData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` // Fixed: Added space after Bearer
+      }
+    });
+      console.log(response);
+
+    // Update local state with the new entity
     const newEntity: EntityData = {
       id: entities.length + 1,
       name: data.name,
@@ -64,7 +198,7 @@ const EntityMaster: React.FC = () => {
       financialStart: data.incorporation_date || "Not specified",
       OwnerShipShare: data.Ownership_share || "Not specified",
       departName: data.Tax_ID || "Not specified",
-      parentOrganization:
+      parentOrganization: 
         data.Parent_Name === "own"
           ? "Own Organization"
           : organizations.find((org) => org.tenant_id === data.Parent_Name)
@@ -78,10 +212,14 @@ const EntityMaster: React.FC = () => {
 
     setEntities((prev) => [...prev, newEntity]);
     reset();
-    setIsSubmitting(false);
     setIsModalOpen(false);
-  };
-
+  } catch (error) {
+    console.error('Error creating entity:', error.response?.data || error.message);
+    // Add user feedback here (e.g., toast notification)
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   const handleDelete = (id: number) => {
     setEntities((prev) => prev.filter((entity) => entity.id !== id));
   };
@@ -95,6 +233,32 @@ const EntityMaster: React.FC = () => {
     setIsModalOpen(false);
     reset();
   };
+  const token=localStorage.getItem('token')
+  const [organizationId,setOrganizationId]=useState('');
+  const getId=async()=>{
+    try{
+ const response= await axios.get('/api/v1/tenant?page=1&limit=10&sort_by=created_at&sort_order=asc',{
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+    })
+           console.log(response.data.data);
+
+       console.log(response.data.data.tenants[0].tenant_id);
+      setOrganizationId(response.data.data.tenants[0].tenant_id);
+
+    }
+    catch(e){
+      console.log(e);
+
+    }
+   
+
+  }
+  useEffect(()=>{
+    getId();
+  },[])
 
   return (
     <div className=" bg-gray-50 p-6">
@@ -328,7 +492,7 @@ const EntityMaster: React.FC = () => {
                   {/* Functional Currency */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Functional Currency{" "}
+                      Functional Currency
                       <span className="text-red-500">*</span>
                     </label>
                     <Controller
