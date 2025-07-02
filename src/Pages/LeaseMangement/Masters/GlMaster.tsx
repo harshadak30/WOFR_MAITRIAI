@@ -1,5 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import axios from "../../../helper/axios";
+import { toast } from "react-toastify";
+
+
 
 interface FormData {
   Entry_Name: string;
@@ -13,14 +17,17 @@ interface FormData {
 
 interface EntityData {
   id: number;
-  Entry_Name: string;
-  Event: String;
-  Entity_Name: string;
-  Description: string;
-  GL_Code: string;
-  GL_Description: string;
-  Dept_ID: string;
-  createdAt: string;
+  entity_id: number;
+  entry_name: string;
+  event_phase: String;
+  entity_name: string;
+  Event: string;
+  description_narration: string;
+  gl_code: string;
+  gl_description: string;
+  department_id: string;
+  department_name: string;
+  created_at: string;
 }
 
 const GlMaster: React.FC = () => {
@@ -35,29 +42,29 @@ const GlMaster: React.FC = () => {
     formState: { errors },
   } = useForm<FormData>();
 
-  const onSubmit = async (data: FormData) => {
-    setIsSubmitting(true);
+  // const onSubmit = async (data: FormData) => {
+  //   setIsSubmitting(true);
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
+  //   // Simulate API delay
+  //   await new Promise((resolve) => setTimeout(resolve, 800));
 
-    const newEntity: EntityData = {
-      id: entities.length + 1,
-      Entry_Name: data.Entry_Name,
-      Event: data.Event,
-      Entity_Name: data.Entity_Name,
-      Description: data.Description || "",
-      GL_Code: data.GL_Code || "",
-      GL_Description: data.GL_Description,
-      Dept_ID: data.Dept_ID || "Not specified",
-      createdAt: new Date().toLocaleDateString(),
-    };
+  //   const newEntity: EntityData = {
+  //     id: entities.length + 1,
+  //     entry_name: data.Entry_Name,
+  //     Event: data.Event,
+  //     entity_name: data.Entity_Name,
+  //     // description: data.Description || "",
+  //     gl_code: data.GL_Code || "",
+  //     gl_description: data.GL_Description,
+  //     department_id: data.Dept_ID || "Not specified",
+  //     created_at: new Date().toLocaleDateString(),
+  //   };
 
-    setEntities((prev) => [...prev, newEntity]);
-    reset();
-    setIsSubmitting(false);
-    setIsModalOpen(false);
-  };
+  //   setEntities((prev) => [...prev, newEntity]);
+  //   reset();
+  //   setIsSubmitting(false);
+  //   setIsModalOpen(false);
+  // };
 
   const handleDelete = (id: number) => {
     setEntities((prev) => prev.filter((entity) => entity.id !== id));
@@ -72,6 +79,24 @@ const GlMaster: React.FC = () => {
     setIsModalOpen(false);
     reset();
   };
+
+  const fetchGlData = async () => {
+    try {
+      const response = await axios.get(`/api/v1/lease-gl-masters`);
+      setEntities(response?.data?.data?.lease_gl_masters);
+      console.log(
+        "GL data fetched successfully:",
+        response.data.data?.lease_gl_masters
+      );
+    } catch (error) {
+      console.error("Error fetching GL data:", error);
+      toast.error("Failed to fetch GL data");
+    }
+  };
+
+  useEffect(() => {
+    fetchGlData();
+  }, []);
 
   return (
     <div className=" bg-gray-50 p-6">
@@ -125,13 +150,16 @@ const GlMaster: React.FC = () => {
                     ID
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Entity Name
+                    Entry Name
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Event
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Entity Name
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Department Name
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Description
@@ -185,36 +213,39 @@ const GlMaster: React.FC = () => {
                     </td>
                   </tr>
                 ) : (
-                  entities.map((entity) => (
+                  entities.map((entity, index) => (
                     <tr key={entity.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        #{entity.id}
+                        #{index + 1}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                        {entity.Entry_Name}
+                        {entity.entry_name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.Event}
+                        {entity.event_phase}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.Entity_Name}
+                        {entity.entity_name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.Description}
+                        {entity.department_name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.GL_Code}
-                      </td>
-
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.GL_Description}
+                        {entity.description_narration}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.Dept_ID}
+                        {entity.gl_code}
                       </td>
 
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.createdAt}
+                        {entity.gl_description}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {entity.department_id}
+                      </td>
+
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {entity.created_at}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
@@ -419,7 +450,7 @@ const GlMaster: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={handleSubmit(onSubmit)}
+                // onClick={handleSubmit(onSubmit)}
                 disabled={isSubmitting}
                 className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-md font-medium transition-colors flex items-center justify-center gap-2"
               >

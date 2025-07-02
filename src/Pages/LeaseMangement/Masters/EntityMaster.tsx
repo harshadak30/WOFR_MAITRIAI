@@ -1,5 +1,8 @@
 import { useForm, Controller } from "react-hook-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "../../../helper/axios";
+import { toast } from "react-toastify";
+
 
 interface FormData {
   name: string;
@@ -13,14 +16,15 @@ interface FormData {
 
 interface EntityData {
   id: number;
-  name: string;
-  functionalCurrency: string;
-  financialStart: string;
-  OwnerShipShare: string;
-  departName: string;
+  entity_id: number;
+  entity_name: string;
+  functional_currency: string;
+  financial_start_date: string;
+  ownership_share_percent: string;
+  department_name: string;
   parentOrganization: string;
-  relatedPartyRelationship: string;
-  createdAt: string;
+  relationship_type: string;
+  created_at: string;
 }
 
 const EntityMaster: React.FC = () => {
@@ -57,26 +61,26 @@ const EntityMaster: React.FC = () => {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 800));
 
-    const newEntity: EntityData = {
-      id: entities.length + 1,
-      name: data.name,
-      functionalCurrency: data.Industry_Sector || "Not specified",
-      financialStart: data.incorporation_date || "Not specified",
-      OwnerShipShare: data.Ownership_share || "Not specified",
-      departName: data.Tax_ID || "Not specified",
-      parentOrganization:
-        data.Parent_Name === "own"
-          ? "Own Organization"
-          : organizations.find((org) => org.tenant_id === data.Parent_Name)
-              ?.name || "Not specified",
-      relatedPartyRelationship:
-        relationshipTypes.find(
-          (type) => type.id.toString() === data.Relationship_Type
-        )?.name || "Not specified",
-      createdAt: new Date().toLocaleDateString(),
-    };
+    // const newEntity: EntityData = {
+    //   id: entities.length + 1,
+    //   name: data.name,
+    //   functional_currency: data.Industry_Sector || "Not specified",
+    //   financialStart: data.incorporation_date || "Not specified",
+    //   OwnerShipShare: data.Ownership_share || "Not specified",
+    //   departName: data.Tax_ID || "Not specified",
+    //   parentOrganization:
+    //     data.Parent_Name === "own"
+    //       ? "Own Organization"
+    //       : organizations.find((org) => org.tenant_id === data.Parent_Name)
+    //           ?.name || "Not specified",
+    //   relatedPartyRelationship:
+    //     relationshipTypes.find(
+    //       (type) => type.id.toString() === data.Relationship_Type
+    //     )?.name || "Not specified",
+    //   createdAt: new Date().toLocaleDateString(),
+    // };
 
-    setEntities((prev) => [...prev, newEntity]);
+    setEntities((prev) => [...prev, ]);
     reset();
     setIsSubmitting(false);
     setIsModalOpen(false);
@@ -95,6 +99,31 @@ const EntityMaster: React.FC = () => {
     setIsModalOpen(false);
     reset();
   };
+        const token = localStorage.getItem("token");
+
+
+  const fetchEntityMaster = async () => {
+      try {
+        const response = await axios.get(`api/v1/entities`, {
+          headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        });
+        setEntities(response.data);
+        console.log(
+          "Entities data fetched successfully:",
+          response.data
+        );
+      } catch (error: any) {
+        console.error("Failed to fetch Entities:", error);
+        toast.error("Failed to load Entities");
+      }
+    };
+  
+    useEffect(() => {
+      fetchEntityMaster();
+    }, []);
 
   return (
     <div className=" bg-gray-50 p-6">
@@ -208,36 +237,36 @@ const EntityMaster: React.FC = () => {
                     </td>
                   </tr>
                 ) : (
-                  entities.map((entity) => (
+                  entities.map((entity, index) => (
                     <tr key={entity.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        #{entity.id}
+                        #{index + 1}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                        {entity.name}
+                        {entity.entity_name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.functionalCurrency}
+                        {entity.functional_currency}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.financialStart}
+                        {entity.financial_start_date}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.departName}
+                        {entity.department_name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {entity.parentOrganization}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                          {entity.relatedPartyRelationship}
+                          {entity.relationship_type}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.OwnerShipShare}
+                        {entity.ownership_share_percent}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.createdAt}
+                        {entity.created_at}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button

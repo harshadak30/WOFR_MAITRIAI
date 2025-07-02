@@ -1,5 +1,7 @@
 import { useForm, Controller } from "react-hook-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "../../../helper/axios";
+import { toast } from "react-toastify";
 
 interface FormData {
   Lessor_Name: string;
@@ -16,23 +18,27 @@ interface FormData {
 
 interface LessorData {
   id: number;
-  Lessor_Name: string;
-  Vendor_Code: string;
-  VAT_application: string;
-  Email: string;
-  Tax_deduction_Application: string;
-  Vendor_bank_name: string;
-  relatedPartyRelationship: string;
-  Vendor_registration_number: string;
-  Tax_Identification_number: string;
-  Vendor_Bank_Account_Number: string;
-  createdAt: string;
+  lessor_id: number;
+  lessor_name: string;
+  vendor_code: string;
+  vat_applicable: string;
+  email: string;
+  tax_deduction_applicable: string;
+  vendor_bank_name: string;
+  related_party_relationship: string;
+  vat_registration_number: string;
+  tax_identification_number: string;
+  vendor_bank_account_number: string;
+  created_at: string;
+  organization_name: string;
 }
 
 const LessorMaster: React.FC = () => {
   const [entities, setEntities] = useState<LessorData[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingModules, setIsLoadingModules] = useState(true);
+
 
   // Static data for dropdowns
   const relationshipTypes = [
@@ -64,33 +70,84 @@ const LessorMaster: React.FC = () => {
     mode: "onChange",
   });
 
+  //  const onSubmit = async (data: FormData) => {
+  //   setIsSubmitting(true);
+
+  //   await new Promise((resolve) => setTimeout(resolve, 800));
+
+  //   const newEntity: LessorData = {
+  //     id: entities.length + 1,
+  //     Lessor_Name: data.Lessor_Name,
+  //     Vendor_Code: data.Vendor_Code,
+  //     VAT_application: data.VAT_application,
+  //     Email: data.Email,
+  //     Tax_deduction_Application: data.Tax_deduction_Application,
+  //     Vendor_bank_name: data.Vendor_bank_name,
+  //     Vendor_registration_number: data.Vendor_registration_number,
+  //     Tax_Identification_number: data.Tax_Identification_number,
+  //     Vendor_Bank_Account_Number: data.Vendor_Bank_Account_Number,
+  //     relatedPartyRelationship:
+  //       relationshipTypes.find(
+  //         (type) => type.id.toString() === data.relatedPartyRelationship
+  //       )?.name || "Not specified",
+  //     createdAt: new Date().toLocaleDateString(),
+  //   };
+
+  //   setEntities((prev) => [...prev, newEntity]);
+  //   reset();
+  //   setIsSubmitting(false);
+  //   setIsModalOpen(false);
+  // };
+
+
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      const payload = {
+        organization_id: "ORG001",
+        organization_name: "ORG NAME",
+        vendor_code: data.Vendor_Code,
+        lessor_name: data.Lessor_Name,
+        vat_applicable: data.VAT_application,
+        tax_deduction_application: data.Tax_deduction_Application,
+        email: data.Email,
+        related_party_relationship: data.relatedPartyRelationship,
+        vendor_bank_name: data.Vendor_bank_name,
+        vendor_registration_number: data.Vendor_registration_number,
+        tax_identification_number: data.Tax_Identification_number,
+        vendor_bank_account_number: data.Vendor_Bank_Account_Number,
+        status: "Active",
+      };
 
-    const newEntity: LessorData = {
-      id: entities.length + 1,
-      Lessor_Name: data.Lessor_Name,
-      Vendor_Code: data.Vendor_Code,
-      VAT_application: data.VAT_application,
-      Email: data.Email,
-      Tax_deduction_Application: data.Tax_deduction_Application,
-      Vendor_bank_name: data.Vendor_bank_name,
-      Vendor_registration_number: data.Vendor_registration_number,
-      Tax_Identification_number: data.Tax_Identification_number,
-      Vendor_Bank_Account_Number: data.Vendor_Bank_Account_Number,
-      relatedPartyRelationship:
-        relationshipTypes.find(
-          (type) => type.id.toString() === data.relatedPartyRelationship
-        )?.name || "Not specified",
-      createdAt: new Date().toLocaleDateString(),
-    };
+      const token = localStorage.getItem("token");
 
-    setEntities((prev) => [...prev, newEntity]);
-    reset();
-    setIsSubmitting(false);
-    setIsModalOpen(false);
+      const res = await axios.post(`api/v1/lease-lessor`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log(res)
+      toast.success("Lessor created successfully!");
+      reset();
+      setIsModalOpen(false);
+    } catch (error: any) {
+      console.error(error);
+
+      if (Array.isArray(error.response?.data?.detail)) {
+        error.response.data.detail.forEach((err: any) => {
+          toast.error(`${err.loc?.[1] || "Field"}: ${err.msg}`);
+        });
+      } else {
+        toast.error(error.response?.data?.detail || "Failed to create lessor");
+      }
+
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDelete = (id: number) => {
@@ -108,6 +165,25 @@ const LessorMaster: React.FC = () => {
   };
 
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const fetchLessors = async () => {
+    try {
+      const response = await axios.get(`api/v1/lease-lessors`, {
+      });
+      setEntities(response?.data?.data?.lease_lessors);
+      console.log(
+        "Lessor data fetched successfully:",
+        response.data.data?.lease_lessors
+      );
+    } catch (error: any) {
+      console.error("Failed to fetch lessors:", error);
+      toast.error("Failed to load lessors");
+    }
+  };
+
+  useEffect(() => {
+    fetchLessors();
+  }, []);
 
   return (
     <div className=" bg-gray-50 p-4 sm:p-6">
@@ -171,6 +247,9 @@ const LessorMaster: React.FC = () => {
                     Email
                   </th>
                   <th className="px-4 sm:px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Organization Name
+                  </th>
+                  <th className="px-4 sm:px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Tax Deduction
                   </th>
                   <th className="px-4 sm:px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -217,7 +296,7 @@ const LessorMaster: React.FC = () => {
                         <h3 className="text-lg font-medium text-gray-900 mb-2">
                           No Lessor found
                         </h3>
-                   
+
                         <button
                           onClick={openModal}
                           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
@@ -228,45 +307,48 @@ const LessorMaster: React.FC = () => {
                     </td>
                   </tr>
                 ) : (
-                  entities.map((entity) => (
+                  entities.map((entity, index) => (
                     <tr key={entity.id} className="hover:bg-gray-50">
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        #{entity.id}
+                        #{index + 1}
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                        {entity.Lessor_Name}
+                        {entity.lessor_name}
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.Vendor_Code}
+                        {entity.vendor_code}
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.VAT_application}
+                        {entity.vat_applicable}
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.Email}
+                        {entity.email}
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.Tax_deduction_Application}
+                        {entity.organization_name}
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.Vendor_bank_name}
+                        {entity.tax_deduction_applicable}
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.Vendor_registration_number}
+                        {entity.vendor_bank_name}
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.Tax_Identification_number}
+                        {entity.vat_registration_number}
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.Vendor_Bank_Account_Number}
+                        {entity.tax_identification_number}
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {entity.vendor_bank_account_number}
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                          {entity.relatedPartyRelationship}
+                          {entity.related_party_relationship}
                         </span>
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {entity.createdAt}
+                        {entity.created_at}
                       </td>
                       <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
@@ -326,7 +408,8 @@ const LessorMaster: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+            <form onSubmit={handleSubmit(onSubmit)}
+              className="p-6">
               {/* Two Column Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 {/* Left Column */}
@@ -348,11 +431,10 @@ const LessorMaster: React.FC = () => {
                           message: "Lessor name cannot exceed 100 characters",
                         },
                       })}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors.Lessor_Name
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300"
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${errors.Lessor_Name
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
+                        }`}
                       placeholder="Enter Lessor name"
                     />
                     {errors.Lessor_Name && (
@@ -391,11 +473,10 @@ const LessorMaster: React.FC = () => {
                           message: "Vendor code must be at least 3 characters",
                         },
                       })}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors.Vendor_Code
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300"
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${errors.Vendor_Code
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
+                        }`}
                       placeholder="Enter Vendor Code (e.g., VEN001)"
                     />
                     {errors.Vendor_Code && (
@@ -428,11 +509,10 @@ const LessorMaster: React.FC = () => {
                       render={({ field }) => (
                         <select
                           {...field}
-                          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                            errors.VAT_application
-                              ? "border-red-300 bg-red-50"
-                              : "border-gray-300"
-                          }`}
+                          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${errors.VAT_application
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300"
+                            }`}
                         >
                           <option value="">Select VAT Application</option>
                           {vatOptions.map((option) => (
@@ -475,11 +555,10 @@ const LessorMaster: React.FC = () => {
                           message: "Please enter a valid email address",
                         },
                       })}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors.Email
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300"
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${errors.Email
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
+                        }`}
                       placeholder="Enter Email (e.g., lessor@example.com)"
                     />
                     {errors.Email && (
@@ -515,11 +594,10 @@ const LessorMaster: React.FC = () => {
                       render={({ field }) => (
                         <select
                           {...field}
-                          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                            errors.Tax_deduction_Application
-                              ? "border-red-300 bg-red-50"
-                              : "border-gray-300"
-                          }`}
+                          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${errors.Tax_deduction_Application
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300"
+                            }`}
                         >
                           <option value="">Select Tax Deduction</option>
                           {taxDeductionOptions.map((option) => (
@@ -564,11 +642,10 @@ const LessorMaster: React.FC = () => {
                           message: "Bank name must be at least 2 characters",
                         },
                       })}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors.Vendor_bank_name
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300"
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${errors.Vendor_bank_name
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
+                        }`}
                       placeholder="Enter Vendor bank name"
                     />
                     {errors.Vendor_bank_name && (
@@ -608,11 +685,10 @@ const LessorMaster: React.FC = () => {
                             "Registration number must be at least 5 characters",
                         },
                       })}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors.Vendor_registration_number
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300"
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${errors.Vendor_registration_number
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
+                        }`}
                       placeholder="Enter Vendor registration number"
                     />
                     {errors.Vendor_registration_number && (
@@ -651,11 +727,10 @@ const LessorMaster: React.FC = () => {
                           message: "Tax ID must be at least 10 characters",
                         },
                       })}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors.Tax_Identification_number
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300"
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${errors.Tax_Identification_number
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
+                        }`}
                       placeholder="Enter Tax Identification number"
                     />
                     {errors.Tax_Identification_number && (
@@ -697,11 +772,10 @@ const LessorMaster: React.FC = () => {
                           message: "Account number cannot exceed 20 digits",
                         },
                       })}
-                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors.Vendor_Bank_Account_Number
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300"
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${errors.Vendor_Bank_Account_Number
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
+                        }`}
                       placeholder="Enter Bank Account Number"
                     />
                     {errors.Vendor_Bank_Account_Number && (
@@ -737,11 +811,10 @@ const LessorMaster: React.FC = () => {
                       render={({ field }) => (
                         <select
                           {...field}
-                          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                            errors.relatedPartyRelationship
-                              ? "border-red-300 bg-red-50"
-                              : "border-gray-300"
-                          }`}
+                          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${errors.relatedPartyRelationship
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300"
+                            }`}
                         >
                           <option value="">Select relationship type</option>
                           {relationshipTypes.map((type) => (

@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {  Edit2, Trash2 } from "lucide-react";
+import axios from "../../../helper/axios";
+import { toast } from "react-toastify";
+
 const defaultAssetGroups = [
   "Aircrafts or Helicopters",
   "Building",
@@ -17,11 +20,13 @@ const defaultAssetGroups = [
 
 interface Asset {
   id: number;
-  code: string;
+  asset_group_code: string;
   description: string;
-  Asset_Value:string;
-  assetGroup: string;
+  low_value_limit:string;
+  asset_group_name: string;
   isEnabled: boolean;
+  status:string;
+  organization_name: string;
 }
 
 const AssetMaster: React.FC = () => {
@@ -112,6 +117,26 @@ const AssetMaster: React.FC = () => {
       Asset_Value:""
     });
   };
+
+
+   const fetchAssets = async () => {
+        try {
+          const response = await axios.get(`api/v1/lease-asset-groups`, {
+          });
+          setAssets(response?.data?.data?.lease_asset_groups);
+          console.log(
+            "Assets data fetched successfully:",
+            response.data
+          );
+        } catch (error: any) {
+          console.error("Failed to fetch Assets:", error);
+          toast.error("Failed to load Assets");
+        }
+      };
+    
+      useEffect(() => {
+        fetchAssets();
+      }, []);
 
   return (
     <div className="bg-gray-50  mx-auto p-6">
@@ -306,6 +331,9 @@ const AssetMaster: React.FC = () => {
                     Description
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                    Organization Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                   Asset Value
                   </th>
 
@@ -358,20 +386,23 @@ const AssetMaster: React.FC = () => {
                     className={asset.isEnabled ? "" : "opacity-60"}
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {asset.code}
+                      {asset.asset_group_code}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {asset.description}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.Asset_Value}
+                      {asset.organization_name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {asset.low_value_limit}
                     </td>
                   
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.assetGroup}
+                      {asset.asset_group_name}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex items-center">
+                      {/* <div className="flex items-center">
                         <button
                           onClick={() => toggleAssetStatus(asset.id)}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
@@ -389,7 +420,8 @@ const AssetMaster: React.FC = () => {
                         <span className="ml-2 text-sm">
                           {asset.isEnabled ? "Enabled" : "Disabled"}
                         </span>
-                      </div>
+                      </div> */}
+                      {asset.status}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex gap-2">
