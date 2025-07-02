@@ -182,7 +182,14 @@ const MultiSelectDropdown: React.FC<ExtendedMultiSelectDropdownProps> = ({
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     checked={isSelected}
                     disabled={isPreSelected}
-                    onChange={() => toggleOption(option.id)}
+                    onChange={() => {
+                      const updated = tempSelected.includes(option.id)
+                        ? tempSelected.filter((id) => id !== option.id)
+                        : [...tempSelected, option.id];
+                        console.log("Updated selection:")
+                      setTempSelected(updated);     // Update internal state
+                      onApply(updated);             // 🔥 Apply instantly
+                    }}
                   />
                   <span className={`ml-2 ${
                     isPreSelected ? "text-blue-700 font-medium" : "text-gray-700"
