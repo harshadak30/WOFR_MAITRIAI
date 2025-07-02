@@ -19,6 +19,7 @@ import CreateLease from "../Pages/LeaseMangement/createLease/CreateLease";
 import PublicLayoutWrapper from "../component/layout/PublicLayoutWrapper";
 import DashboardLayout from "../component/layout/DashboardLayout";
 import UserProfile from "../Pages/MasterAdmin/Users/UserProfile";
+import LeaseReviewApprove from "../Pages/LeaseMangement/Checker/LeaseReview/LeaseReviewApprove";
 // import SuperUserProfile from "../Pages/SuperAdminPages/User/SuperUserProfile";
 
 export const publicRoutes: RouteObject[] = [
@@ -125,12 +126,12 @@ const flattenRoutes = (routes: any[]): any[] => {
 
 const InitialDashboardRedirect = () => {
   const lastRoute = localStorage.getItem('lastRoute');
-  
+
   // Check if the lastRoute is valid and not the dashboard overview
   if (lastRoute && lastRoute !== '/dashboard/overview') {
     return <Navigate to={lastRoute} replace />;
   }
-  
+
   // Default to overview
   return <Navigate to="/dashboard/overview" replace />;
 };
@@ -144,7 +145,7 @@ export const dashboardRoutes: RouteObject[] = [
         index: true,
         element: <InitialDashboardRedirect />,
       },
-      
+
       // Use the new flatten function to handle all nested routes
       ...flattenRoutes(DashboardRoutes),
 
@@ -170,6 +171,14 @@ export const dashboardRoutes: RouteObject[] = [
         element: (
           <ProtectedRoute allowedRoles={["dev", "master_admin", "super_admin"]}>
             <CreateLease />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "lease-review",
+        element: (
+          <ProtectedRoute allowedRoles={["dev", "master_admin", "super_admin"]}>
+            <LeaseReviewApprove />
           </ProtectedRoute>
         ),
       },
