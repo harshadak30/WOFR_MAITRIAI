@@ -17,6 +17,7 @@ import {
   UserCog,
   UserRoundCog,
   Users,
+  UserCheck,
 } from "lucide-react";
 
 import { JSX } from "react";
@@ -35,6 +36,7 @@ import Currency from "../Pages/LeaseMangement/Masters/Currency";
 import CheckerDashboard from "../Pages/LeaseMangement/Checker/CheckerDashboard";
 import MasterModulesPage from "../Pages/MasterAdmin/Modules/MasterModulesPage";
 import { MasterRoleManagement } from "../Pages/MasterAdmin/Roles/MasterRoleManagement";
+import CheckerLeaseManagement from "../Pages/LeaseMangement/CheckerWorkflow/CheckerLeaseManagement";
 
 export interface RouteChild {
   name: string;
@@ -75,13 +77,20 @@ export const DashboardRoutes: RouteItem[] = [
         element: <LeaseManagement />,
         allowedRoles: ["dev", "super_admin"],
       },
-      {
-        name: "Lease Checker",
-        path: "checker",
-        icon: <LaptopMinimalCheck size={20} />,
-        element: <CheckerDashboard />,
-        allowedRoles: ["dev", "super_admin"],
-      },
+      // {
+      //   name: "Lease Checker",
+      //   path: "checker",
+      //   icon: <LaptopMinimalCheck size={20} />,
+      //   element: <CheckerDashboard />,
+      //   allowedRoles: ["dev", "super_admin"],
+      // },
+       {
+    name: "Checker - Lease Review",
+    path: "checker-lease",
+    icon: <UserCheck size={20} />,
+    element: <CheckerLeaseManagement />,
+    allowedRoles: ["dev", "super_admin", "checker"],
+  },
       {
         name: "Master",
         path: "master", 
