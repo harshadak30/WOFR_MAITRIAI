@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { PlusCircle, X, Edit2 } from "lucide-react";
 import React from "react";
@@ -27,12 +25,12 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
     moduleOptions,
     getActionOptionsForModules,
     getSubActionOptionsForModulesAndActions,
-    
+
     // Master Admin pagination
     masterAdminPaginationParams,
     masterAdminPaginationMeta,
     updateMasterAdminPaginationParams,
-    
+
     // Super Admin pagination
     superAdminPaginationParams,
     superAdminPaginationMeta,
@@ -42,15 +40,19 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
   // Form state
   const [selectedSuperAdminRole, setSelectedSuperAdminRole] = useState("");
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
-  const [selectedActions, setSelectedActions] = useState("");
+  // const [selectedActions, setSelectedActions] = useState("");
+  const [selectedActions, setSelectedActions] = useState<string[]>([]);
   const [selectedSubActions, setSelectedSubActions] = useState<string[]>([]);
 
   // Edit state
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingMapping, setEditingMapping] = useState<any>(null);
   const [editSelectedModules, setEditSelectedModules] = useState<string[]>([]);
-  const [editSelectedActions, setEditSelectedActions] = useState("");
-  const [editSelectedSubActions, setEditSelectedSubActions] = useState<string[]>([]);
+  // const [editSelectedActions, setEditSelectedActions] = useState("");
+  const [editSelectedActions, setEditSelectedActions] = useState<string[]>([]);
+  const [editSelectedSubActions, setEditSelectedSubActions] = useState<
+    string[]
+  >([]);
   const [isEditInitialized, setIsEditInitialized] = useState(false);
 
   // UI state
@@ -71,13 +73,20 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
   );
 
   const availableSubActions = useMemo(() => {
-    const currentRoleId = selectedSuperAdminRole ? parseInt(selectedSuperAdminRole) : undefined;
+    const currentRoleId = selectedSuperAdminRole
+      ? parseInt(selectedSuperAdminRole)
+      : undefined;
     return getSubActionOptionsForModulesAndActions(
-      selectedModules, 
-      selectedActions, 
+      selectedModules,
+      selectedActions,
       currentRoleId
     );
-  }, [getSubActionOptionsForModulesAndActions, selectedModules, selectedActions, selectedSuperAdminRole]);
+  }, [
+    getSubActionOptionsForModulesAndActions,
+    selectedModules,
+    selectedActions,
+    selectedSuperAdminRole,
+  ]);
 
   // Edit form available options
   const editAvailableActions = useMemo(
@@ -88,21 +97,26 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
   const editAvailableSubActions = useMemo(() => {
     const currentRoleId = editingMapping?.super_admin_role_id;
     return getSubActionOptionsForModulesAndActions(
-      editSelectedModules, 
-      editSelectedActions, 
+      editSelectedModules,
+      editSelectedActions,
       currentRoleId
     );
-  }, [getSubActionOptionsForModulesAndActions, editSelectedModules, editSelectedActions, editingMapping]);
+  }, [
+    getSubActionOptionsForModulesAndActions,
+    editSelectedModules,
+    editSelectedActions,
+    editingMapping,
+  ]);
 
   // Enhanced data processing with better grouping
   const masterAdminFlattenedData = useMemo(() => {
     const grouped = new Map<string, any>();
     console.log("MasterAdminRoleMappings", MasterAdminRoleMappings);
-    
+
     MasterAdminRoleMappings?.forEach((moduleMapping: any) => {
       const roleData = moduleMapping?.module_data;
 
-      if (roleData && typeof roleData === 'object' && roleData.role_id) {
+      if (roleData && typeof roleData === "object" && roleData.role_id) {
         const groupKey = `${roleData.role_id}-${moduleMapping.module_name}`;
 
         if (!grouped.has(groupKey)) {
@@ -117,13 +131,15 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
         }
 
         const existingGroup = grouped.get(groupKey)!;
-        
+
         if (roleData.actions && Array.isArray(roleData.actions)) {
           roleData.actions.forEach((action: any) => {
             existingGroup.actions.push({
               action_id: action.action_id,
               action_name: action.action_name,
-              sub_actions: Array.isArray(action.all_sub_actions) ? action.all_sub_actions : [],
+              sub_actions: Array.isArray(action.all_sub_actions)
+                ? action.all_sub_actions
+                : [],
             });
           });
         }
@@ -185,64 +201,173 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
   const resetForm = useCallback(() => {
     setSelectedSuperAdminRole("");
     setSelectedModules([]);
-    setSelectedActions("");
+    setSelectedActions([]);
     setSelectedSubActions([]);
   }, []);
 
   const resetEditForm = useCallback(() => {
     setEditSelectedModules([]);
-    setEditSelectedActions("");
+    setEditSelectedActions([]);
     setEditSelectedSubActions([]);
     setEditingMapping(null);
     setIsEditInitialized(false);
   }, []);
 
   // Handle edit button click with proper initialization
+  // const handleEditClick = useCallback((rowData: any) => {
+  //   setEditingMapping(rowData);
+  //   setEditModalOpen(true);
+
+  //   // Initialize edit form data after a brief delay to ensure modal is open
+  //   setTimeout(() => {
+  //     setEditSelectedModules([rowData.module_name]);
+  //     setIsEditInitialized(true);
+
+  //     // Set actions and sub-actions after modules are set
+  //     setTimeout(() => {
+  //       if (rowData.actions.length > 0) {
+  //         setEditSelectedActions(rowData.actions[0].action_name);
+
+  //         // Set sub-actions after actions are set
+  //         setTimeout(() => {
+  //           setEditSelectedSubActions(
+  //             rowData.actions[0].sub_actions.map((sa: any) => sa.sub_action_name)
+  //           );
+  //         }, 100);
+  //       }
+  //     }, 100);
+  //   }, 50);
+  // }, []);
+
   const handleEditClick = useCallback((rowData: any) => {
     setEditingMapping(rowData);
     setEditModalOpen(true);
-    
-    // Initialize edit form data after a brief delay to ensure modal is open
+
     setTimeout(() => {
       setEditSelectedModules([rowData.module_name]);
       setIsEditInitialized(true);
-      
-      // Set actions and sub-actions after modules are set
+
       setTimeout(() => {
-        if (rowData.actions.length > 0) {
-          setEditSelectedActions(rowData.actions[0].action_name);
-          
-          // Set sub-actions after actions are set
-          setTimeout(() => {
-            setEditSelectedSubActions(
-              rowData.actions[0].sub_actions.map((sa: any) => sa.sub_action_name)
-            );
-          }, 100);
-        }
+        // Set all actions
+        const allActions = rowData.actions.map((a: any) => a.action_name);
+        setEditSelectedActions(allActions);
+
+        setTimeout(() => {
+          // Set all sub-actions from all selected actions
+          const allSubActions = rowData.actions.flatMap((a: any) =>
+            a.sub_actions.map((sa: any) => sa.sub_action_name)
+          );
+          setEditSelectedSubActions(allSubActions);
+        }, 100);
       }, 100);
     }, 50);
   }, []);
+
+  // const submitPermission = useCallback(async () => {
+  //   if (
+  //     !selectedSuperAdminRole ||
+  //     selectedModules.length === 0 ||
+  //     !selectedActions
+  //   ) {
+  //     setMessage("Please select super admin role, modules, and actions");
+  //     return;
+  //   }
+
+  //   const superAdminRoleId = parseInt(selectedSuperAdminRole);
+
+  //   const success = await handleCreateSuperAdminRoleMapping(
+  //     superAdminRoleId,
+  //     selectedModules,
+  //     selectedActions,
+  //     selectedSubActions
+  //   );
+
+  //   if (success) {
+  //     resetForm();
+  //   }
+  // }, [
+  //   selectedSuperAdminRole,
+  //   selectedModules,
+  //   selectedActions,
+  //   selectedSubActions,
+  //   handleCreateSuperAdminRoleMapping,
+  //   resetForm,
+  //   setMessage,
+  // ]);
+
+  // Submit edit form - using same POST endpoint as creation
+
+  //   const submitPermission = useCallback(async () => {
+  //   if (
+  //     !selectedSuperAdminRole ||
+  //     selectedModules.length === 0 ||
+  //     selectedActions.length === 0
+  //   ) {
+  //     setMessage("Please select super admin role, modules, and at least one action");
+  //     return;
+  //   }
+
+  //   const superAdminRoleId = parseInt(selectedSuperAdminRole);
+
+  //   // Create a mapping for each selected action
+  //   const success = await Promise.all(selectedActions.map(async (action) => {
+  //     return handleCreateSuperAdminRoleMapping(
+  //       superAdminRoleId,
+  //       selectedModules,
+  //       action,
+  //       selectedSubActions.filter(sa =>
+  //         availableSubActions.find(as =>
+  //           as.id === sa && as.parent_action === action
+  //         )
+  //       )
+  //     );
+  //   }));
+
+  //   if (success.every(Boolean)) {
+  //     resetForm();
+  //   }
+  // }, [
+  //   selectedSuperAdminRole,
+  //   selectedModules,
+  //   selectedActions,
+  //   selectedSubActions,
+  //   handleCreateSuperAdminRoleMapping,
+  //   resetForm,
+  //   setMessage,
+  //   availableSubActions
+  // ]);
 
   const submitPermission = useCallback(async () => {
     if (
       !selectedSuperAdminRole ||
       selectedModules.length === 0 ||
-      !selectedActions
+      selectedActions.length === 0
     ) {
-      setMessage("Please select super admin role, modules, and actions");
+      setMessage(
+        "Please select super admin role, modules, and at least one action"
+      );
       return;
     }
 
     const superAdminRoleId = parseInt(selectedSuperAdminRole);
 
-    const success = await handleCreateSuperAdminRoleMapping(
-      superAdminRoleId,
-      selectedModules,
-      selectedActions,
-      selectedSubActions
+    // Create a mapping for each selected action
+    const success = await Promise.all(
+      selectedActions.map(async (action) => {
+        return handleCreateSuperAdminRoleMapping(
+          superAdminRoleId,
+          selectedModules,
+          [action], // Wrap action in an array
+          selectedSubActions.filter((sa) =>
+            availableSubActions.find(
+              (as) => as.id === sa && as.parent_action === action
+            )
+          )
+        );
+      })
     );
 
-    if (success) {
+    if (success.every(Boolean)) {
       resetForm();
     }
   }, [
@@ -253,40 +378,40 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
     handleCreateSuperAdminRoleMapping,
     resetForm,
     setMessage,
+    availableSubActions,
   ]);
 
-  // Submit edit form - using same POST endpoint as creation
-  const submitEditPermission = useCallback(async () => {
-    if (
-      !editingMapping ||
-      editSelectedModules.length === 0 ||
-      !editSelectedActions
-    ) {
-      setMessage("Please select modules and actions");
-      return;
-    }
+  // const submitEditPermission = useCallback(async () => {
+  //   if (
+  //     !editingMapping ||
+  //     editSelectedModules.length === 0 ||
+  //     !editSelectedActions
+  //   ) {
+  //     setMessage("Please select modules and actions");
+  //     return;
+  //   }
 
-    // Use the same POST endpoint for updates
-    const success = await handleCreateSuperAdminRoleMapping(
-      editingMapping.super_admin_role_id,
-      editSelectedModules,
-      editSelectedActions,
-      editSelectedSubActions
-    );
+  //   // Use the same POST endpoint for updates
+  //   const success = await handleCreateSuperAdminRoleMapping(
+  //     editingMapping.super_admin_role_id,
+  //     editSelectedModules,
+  //     editSelectedActions,
+  //     editSelectedSubActions
+  //   );
 
-    if (success) {
-      setEditModalOpen(false);
-      resetEditForm();
-    }
-  }, [
-    editingMapping,
-    editSelectedModules,
-    editSelectedActions,
-    editSelectedSubActions,
-    handleCreateSuperAdminRoleMapping,
-    resetEditForm,
-    setMessage,
-  ]);
+  //   if (success) {
+  //     setEditModalOpen(false);
+  //     resetEditForm();
+  //   }
+  // }, [
+  //   editingMapping,
+  //   editSelectedModules,
+  //   editSelectedActions,
+  //   editSelectedSubActions,
+  //   handleCreateSuperAdminRoleMapping,
+  //   resetEditForm,
+  //   setMessage,
+  // ]);
 
   // Enhanced dropdown toggle with proper attachment
   // const toggleDropdown = useCallback(
@@ -295,24 +420,72 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
   //     const newExpandedDropdown = expandedDropdown?.id === dropdownId && expandedDropdown?.type === type
   //       ? null
   //       : { id: dropdownId, type };
-      
+
   //     setExpandedDropdown(newExpandedDropdown);
   //   },
   //   [expandedDropdown]
   // );
 
   // Pagination handlers
-  const handleMasterAdminPageChange = useCallback((page: number) => {
-    updateMasterAdminPaginationParams({ page });
-  }, [updateMasterAdminPaginationParams]);
 
-  const handleSuperAdminPageChange = useCallback((page: number) => {
-    updateSuperAdminPaginationParams({ page });
-  }, [updateSuperAdminPaginationParams]);
+  const submitEditPermission = useCallback(async () => {
+    if (
+      !editingMapping ||
+      editSelectedModules.length === 0 ||
+      editSelectedActions.length === 0
+    ) {
+      setMessage("Please select modules and at least one action");
+      return;
+    }
+
+    // Create a mapping for each selected action
+    const success = await Promise.all(
+      editSelectedActions.map(async (action) => {
+        return handleCreateSuperAdminRoleMapping(
+          editingMapping.super_admin_role_id,
+          editSelectedModules,
+          [action], // Wrap action in an array
+          editSelectedSubActions.filter((sa) =>
+            editAvailableSubActions.find(
+              (as) => as.id === sa && as.parent_action === action
+            )
+          )
+        );
+      })
+    );
+
+    if (success.every(Boolean)) {
+      setEditModalOpen(false);
+      resetEditForm();
+    }
+  }, [
+    editingMapping,
+    editSelectedModules,
+    editSelectedActions,
+    editSelectedSubActions,
+    editAvailableSubActions,
+    handleCreateSuperAdminRoleMapping,
+    resetEditForm,
+    setMessage,
+  ]);
+
+  const handleMasterAdminPageChange = useCallback(
+    (page: number) => {
+      updateMasterAdminPaginationParams({ page });
+    },
+    [updateMasterAdminPaginationParams]
+  );
+
+  const handleSuperAdminPageChange = useCallback(
+    (page: number) => {
+      updateSuperAdminPaginationParams({ page });
+    },
+    [updateSuperAdminPaginationParams]
+  );
 
   // Enhanced effects with better cleanup - ONLY for main form, not edit form
   useEffect(() => {
-    setSelectedActions("");
+    setSelectedActions([]);
     setSelectedSubActions([]);
   }, [selectedModules]);
 
@@ -325,7 +498,7 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
     if (isEditInitialized && editModalOpen) {
       // Only clear if this is a user-initiated change, not initialization
       const timer = setTimeout(() => {
-        setEditSelectedActions("");
+        setEditSelectedActions([]);
         setEditSelectedSubActions([]);
       }, 50);
       return () => clearTimeout(timer);
@@ -365,13 +538,13 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
     };
 
     if (expandedDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-      window.addEventListener('scroll', handleScroll, true);
+      document.addEventListener("mousedown", handleClickOutside);
+      window.addEventListener("scroll", handleScroll, true);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('scroll', handleScroll, true);
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll, true);
     };
   }, [expandedDropdown]);
 
@@ -427,13 +600,17 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
                   </span>
                 </label>
                 <ResponsiveDropdown
-                  options={availableSuperAdminRoles.map(role => ({
+                  options={availableSuperAdminRoles.map((role) => ({
                     id: role.role_id.toString(),
                     label: role.role_name,
-                    value: role.role_id
+                    value: role.role_id,
                   }))}
                   selectedValue={selectedSuperAdminRole}
-                  onSelect={(value) => setSelectedSuperAdminRole(Array.isArray(value) ? value[0] : value)}
+                  onSelect={(value) =>
+                    setSelectedSuperAdminRole(
+                      Array.isArray(value) ? value[0] : value
+                    )
+                  }
                   placeholder="Choose Super Admin Role..."
                   disabled={isReadOnly || isLoading}
                   className="w-full"
@@ -461,22 +638,26 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
                   </span>
                 </label>
                 <ResponsiveDropdown
-                  options={moduleOptions.map(module => ({
+                  options={moduleOptions.map((module) => ({
                     id: module.id,
                     label: module.label,
-                    value: module.module_id
+                    value: module.module_id,
                   }))}
                   selectedValue={selectedModules}
-                  onSelect={(value) => setSelectedModules(Array.isArray(value) ? value : [value])}
+                  onSelect={(value) =>
+                    setSelectedModules(Array.isArray(value) ? value : [value])
+                  }
                   placeholder="Choose Modules..."
                   multiple={true}
                   disabled={!selectedSuperAdminRole || isReadOnly || isLoading}
                   className="w-full"
                   searchable={true}
-                  renderSelected={(count, options) => 
-                    count === 0 ? "Choose Modules..." :
-                    count === 1 ? options[0].label : 
-                    `${count} modules selected`
+                  renderSelected={(count, options) =>
+                    count === 0
+                      ? "Choose Modules..."
+                      : count === 1
+                      ? options[0].label
+                      : `${count} modules selected`
                   }
                 />
                 {selectedModules.length > 0 && (
@@ -503,7 +684,7 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
                     ({availableActions.length} available)
                   </span>
                 </label>
-                <ResponsiveDropdown
+                {/* <ResponsiveDropdown
                   options={availableActions.map(action => ({
                     id: action.id,
                     label: action.label,
@@ -513,6 +694,23 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
                   onSelect={(value) => setSelectedActions(Array.isArray(value) ? value[0] : value)}
                   placeholder="Choose Action..."
                   disabled={selectedModules.length === 0 || isReadOnly || isLoading}
+                  className="w-full"
+                /> */}
+                <ResponsiveDropdown
+                  options={availableActions.map((action) => ({
+                    id: action.id,
+                    label: action.label,
+                    value: action.action_id,
+                  }))}
+                  selectedValue={selectedActions}
+                  onSelect={(value) =>
+                    setSelectedActions(Array.isArray(value) ? value : [value])
+                  }
+                  placeholder="Choose Actions..."
+                  multiple={true} // Enable multiple selection
+                  disabled={
+                    selectedModules.length === 0 || isReadOnly || isLoading
+                  }
                   className="w-full"
                 />
                 {selectedActions && (
@@ -533,22 +731,28 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
                   </span>
                 </label>
                 <ResponsiveDropdown
-                  options={availableSubActions.map(subAction => ({
+                  options={availableSubActions.map((subAction) => ({
                     id: subAction.id,
                     label: subAction.label,
-                    value: subAction.sub_action_id
+                    value: subAction.sub_action_id,
                   }))}
                   selectedValue={selectedSubActions}
-                  onSelect={(value) => setSelectedSubActions(Array.isArray(value) ? value : [value])}
+                  onSelect={(value) =>
+                    setSelectedSubActions(
+                      Array.isArray(value) ? value : [value]
+                    )
+                  }
                   placeholder="Choose Sub Actions..."
                   multiple={true}
                   disabled={!selectedActions || isReadOnly || isLoading}
                   className="w-full"
                   searchable={true}
-                  renderSelected={(count, options) => 
-                    count === 0 ? "Choose Sub Actions..." :
-                    count === 1 ? options[0].label.split(' (')[0] : 
-                    `${count} sub actions selected`
+                  renderSelected={(count, options) =>
+                    count === 0
+                      ? "Choose Sub Actions..."
+                      : count === 1
+                      ? options[0].label.split(" (")[0]
+                      : `${count} sub actions selected`
                   }
                 />
                 {selectedSubActions.length > 0 && (
@@ -597,7 +801,7 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
         </div>
 
         {/* Master Admin Role Permissions Table */}
-        <div 
+        <div
           ref={masterTableContainerRef}
           className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
         >
@@ -632,10 +836,14 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
                 <tbody className="bg-white divide-y divide-gray-200">
                   {masterAdminFlattenedData.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-4 sm:px-6 py-8 sm:py-12 text-center">
+                      <td
+                        colSpan={5}
+                        className="px-4 sm:px-6 py-8 sm:py-12 text-center"
+                      >
                         <div className="text-gray-500">
                           <span className="text-sm">
-                            No modules have been assigned to your Account. Please contact the Master User for access.
+                            No modules have been assigned to your Account.
+                            Please contact the Master User for access.
                           </span>
                         </div>
                       </td>
@@ -647,7 +855,10 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
                         className="hover:bg-gray-50 transition-colors duration-150"
                       >
                         <td className="px-3 sm:px-4 py-3 sm:py-4 text-center text-sm font-medium text-gray-900">
-                          {(masterAdminPaginationParams.page - 1) * masterAdminPaginationParams.limit + index + 1}
+                          {(masterAdminPaginationParams.page - 1) *
+                            masterAdminPaginationParams.limit +
+                            index +
+                            1}
                         </td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4">
                           <div className="text-sm font-semibold text-gray-900 truncate">
@@ -662,25 +873,47 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
                         <td className="px-3 sm:px-6 py-3 sm:py-4">
                           <div className="relative">
                             <select className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
-                              <option value="">Actions ({roleData.actions.length})</option>
-                              {roleData.actions.map((action: any, actionIdx: number) => (
-                                <option key={actionIdx} value={action.action_name}>
-                                  {action.action_name}
-                                </option>
-                              ))}
+                              <option value="">
+                                Actions ({roleData.actions.length})
+                              </option>
+                              {roleData.actions.map(
+                                (action: any, actionIdx: number) => (
+                                  <option
+                                    key={actionIdx}
+                                    value={action.action_name}
+                                  >
+                                    {action.action_name}
+                                  </option>
+                                )
+                              )}
                             </select>
                           </div>
                         </td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4">
                           <div className="relative">
                             <select className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
-                              <option value="">Sub Actions ({roleData.actions.reduce((total: number, action: any) => total + action.sub_actions.length, 0)})</option>
-                              {roleData.actions.map((action: any, actionIdx: number) => 
-                                action.sub_actions.map((subAction: any, subIdx: number) => (
-                                  <option key={`${actionIdx}-${subIdx}`} value={subAction.sub_action_name}>
-                                    {action.action_name} → {subAction.sub_action_name}
-                                  </option>
-                                ))
+                              <option value="">
+                                Sub Actions (
+                                {roleData.actions.reduce(
+                                  (total: number, action: any) =>
+                                    total + action.sub_actions.length,
+                                  0
+                                )}
+                                )
+                              </option>
+                              {roleData.actions.map(
+                                (action: any, actionIdx: number) =>
+                                  action.sub_actions.map(
+                                    (subAction: any, subIdx: number) => (
+                                      <option
+                                        key={`${actionIdx}-${subIdx}`}
+                                        value={subAction.sub_action_name}
+                                      >
+                                        {action.action_name} →{" "}
+                                        {subAction.sub_action_name}
+                                      </option>
+                                    )
+                                  )
                               )}
                             </select>
                           </div>
@@ -704,7 +937,7 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
         </div>
 
         {/* Super Admin Role Permissions Table */}
-        <div 
+        <div
           ref={superTableContainerRef}
           className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
         >
@@ -742,10 +975,14 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
                 <tbody className="bg-white divide-y divide-gray-200">
                   {superAdminFlattenedData.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 sm:px-6 py-8 sm:py-12 text-center">
+                      <td
+                        colSpan={6}
+                        className="px-4 sm:px-6 py-8 sm:py-12 text-center"
+                      >
                         <div className="text-gray-500">
                           <span className="text-sm">
-                            No role permissions assigned yet. Use the form above to assign permissions to roles.
+                            No role permissions assigned yet. Use the form above
+                            to assign permissions to roles.
                           </span>
                         </div>
                       </td>
@@ -757,7 +994,10 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
                         className="hover:bg-gray-50 transition-colors duration-150"
                       >
                         <td className="px-3 sm:px-4 py-3 sm:py-4 text-center text-sm font-medium text-gray-900">
-                          {(superAdminPaginationParams.page - 1) * superAdminPaginationParams.limit + index + 1}
+                          {(superAdminPaginationParams.page - 1) *
+                            superAdminPaginationParams.limit +
+                            index +
+                            1}
                         </td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4">
                           <div className="text-sm font-semibold text-gray-900 truncate">
@@ -772,25 +1012,47 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
                         <td className="px-3 sm:px-6 py-3 sm:py-4">
                           <div className="relative">
                             <select className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
-                              <option value="">Actions ({roleData.actions.length})</option>
-                              {roleData.actions.map((action: any, actionIdx: number) => (
-                                <option key={actionIdx} value={action.action_name}>
-                                  {action.action_name}
-                                </option>
-                              ))}
+                              <option value="">
+                                Actions ({roleData.actions.length})
+                              </option>
+                              {roleData.actions.map(
+                                (action: any, actionIdx: number) => (
+                                  <option
+                                    key={actionIdx}
+                                    value={action.action_name}
+                                  >
+                                    {action.action_name}
+                                  </option>
+                                )
+                              )}
                             </select>
                           </div>
                         </td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4">
                           <div className="relative">
                             <select className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
-                              <option value="">Sub Actions ({roleData.actions.reduce((total: number, action: any) => total + action.sub_actions.length, 0)})</option>
-                              {roleData.actions.map((action: any, actionIdx: number) => 
-                                action.sub_actions.map((subAction: any, subIdx: number) => (
-                                  <option key={`${actionIdx}-${subIdx}`} value={subAction.sub_action_name}>
-                                    {action.action_name} → {subAction.sub_action_name}
-                                  </option>
-                                ))
+                              <option value="">
+                                Sub Actions (
+                                {roleData.actions.reduce(
+                                  (total: number, action: any) =>
+                                    total + action.sub_actions.length,
+                                  0
+                                )}
+                                )
+                              </option>
+                              {roleData.actions.map(
+                                (action: any, actionIdx: number) =>
+                                  action.sub_actions.map(
+                                    (subAction: any, subIdx: number) => (
+                                      <option
+                                        key={`${actionIdx}-${subIdx}`}
+                                        value={subAction.sub_action_name}
+                                      >
+                                        {action.action_name} →{" "}
+                                        {subAction.sub_action_name}
+                                      </option>
+                                    )
+                                  )
                               )}
                             </select>
                           </div>
@@ -872,16 +1134,18 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
                 </label>
                 <ResponsiveDropdown
                   key={`edit-modules-${editModalOpen}-${isEditInitialized}`}
-                  options={moduleOptions.map(module => ({
+                  options={moduleOptions.map((module) => ({
                     id: module.id,
                     label: module.label,
-                    value: module.module_id
+                    value: module.module_id,
                   }))}
                   selectedValue={editSelectedModules}
                   onSelect={(value) => {
-                    setEditSelectedModules(Array.isArray(value) ? value : [value]);
+                    setEditSelectedModules(
+                      Array.isArray(value) ? value : [value]
+                    );
                     // Clear actions and sub-actions when modules change
-                    setEditSelectedActions("");
+                    setEditSelectedActions([]);
                     setEditSelectedSubActions([]);
                   }}
                   placeholder="Choose Module..."
@@ -906,7 +1170,7 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
                 <label className="block text-sm font-medium text-gray-700">
                   Select Action
                 </label>
-                <ResponsiveDropdown
+                {/* <ResponsiveDropdown
                   key={`edit-actions-${editSelectedModules.join(',')}-${isEditInitialized}`}
                   options={editAvailableActions.map(action => ({
                     id: action.id,
@@ -920,6 +1184,27 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
                     setEditSelectedSubActions([]);
                   }}
                   placeholder="Choose Action..."
+                  disabled={editSelectedModules.length === 0 || isLoading}
+                  className="w-full"
+                /> */}
+                <ResponsiveDropdown
+                  key={`edit-actions-${editSelectedModules.join(
+                    ","
+                  )}-${isEditInitialized}`}
+                  options={editAvailableActions.map((action) => ({
+                    id: action.id,
+                    label: action.label,
+                    value: action.action_id,
+                  }))}
+                  selectedValue={editSelectedActions}
+                  onSelect={(value) => {
+                    setEditSelectedActions(
+                      Array.isArray(value) ? value : [value]
+                    );
+                    setEditSelectedSubActions([]);
+                  }}
+                  placeholder="Choose Actions..."
+                  multiple={true} // Enable multiple selection
                   disabled={editSelectedModules.length === 0 || isLoading}
                   className="w-full"
                 />
@@ -939,13 +1224,17 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
                 </label>
                 <ResponsiveDropdown
                   key={`edit-subactions-${editSelectedActions}-${isEditInitialized}`}
-                  options={editAvailableSubActions.map(subAction => ({
+                  options={editAvailableSubActions.map((subAction) => ({
                     id: subAction.id,
                     label: subAction.label,
-                    value: subAction.sub_action_id
+                    value: subAction.sub_action_id,
                   }))}
                   selectedValue={editSelectedSubActions}
-                  onSelect={(value) => setEditSelectedSubActions(Array.isArray(value) ? value : [value])}
+                  onSelect={(value) =>
+                    setEditSelectedSubActions(
+                      Array.isArray(value) ? value : [value]
+                    )
+                  }
                   placeholder="Choose Sub Actions..."
                   multiple={true}
                   disabled={!editSelectedActions || isLoading}
@@ -1003,11 +1292,3 @@ const SuperRoleManagement: React.FC<{ isReadOnly: boolean }> = ({
 };
 
 export default SuperRoleManagement;
-
-
-
-
-
-
-
-

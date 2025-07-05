@@ -19,6 +19,8 @@ import CreateLease from "../Pages/LeaseMangement/createLease/CreateLease";
 import PublicLayoutWrapper from "../component/layout/PublicLayoutWrapper";
 import DashboardLayout from "../component/layout/DashboardLayout";
 import UserProfile from "../Pages/MasterAdmin/Users/UserProfile";
+import ViewLease from "../Pages/LeaseMangement/ViewLease/ViewLease";
+import CheckerLeaseReview from "../Pages/LeaseMangement/CheckerWorkflow/CheckerLeaseReview";
 // import SuperUserProfile from "../Pages/SuperAdminPages/User/SuperUserProfile";
 
 export const publicRoutes: RouteObject[] = [
@@ -170,6 +172,22 @@ export const dashboardRoutes: RouteObject[] = [
         element: (
           <ProtectedRoute allowedRoles={["dev", "master_admin", "super_admin"]}>
             <CreateLease />
+          </ProtectedRoute>
+        ),
+      },
+        {
+        path: "lease/view/:id",
+        element: (
+          <ProtectedRoute allowedRoles={["dev", "master_admin", "super_admin"]}>
+          <ViewLease />
+          </ProtectedRoute>
+        ),
+      },
+            {
+        path: "checker-lease/review/:id",
+        element: (
+          <ProtectedRoute allowedRoles={["dev", "master_admin", "super_admin"]}>
+          <CheckerLeaseReview />
           </ProtectedRoute>
         ),
       },

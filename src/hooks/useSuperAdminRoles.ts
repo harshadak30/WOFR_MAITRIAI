@@ -532,116 +532,290 @@ console.log(data , "fetchSuperAdminRoleMappings");
   }, [superAdminRoleMappings, groupedModuleActions]);
 
   // Enhanced sub-action options with smart filtering for unassigned sub-actions
-  const getSubActionOptionsForModulesAndActions = useCallback((
-    selectedModules: string[],
-    selectedAction: string,
-    currentRoleId?: number
-  ) => {
-    if (!selectedModules || selectedModules.length === 0 || !selectedAction)
-      return [];
+  // const getSubActionOptionsForModulesAndActions = useCallback((
+  //   selectedModules: string[],
+  //   selectedAction: string,
+  //   currentRoleId?: number
+  // ) => {
+  //   if (!selectedModules || selectedModules.length === 0 || !selectedAction)
+  //     return [];
  
-    const subActions: {
-      id: string;
-      label: string;
-      sub_action_id: number;
-      parent_action: string;
-    }[] = [];
-    const seen = new Set<string>();
+  //   const subActions: {
+  //     id: string;
+  //     label: string;
+  //     sub_action_id: number;
+  //     parent_action: string;
+  //   }[] = [];
+  //   const seen = new Set<string>();
  
-    // Get assigned sub-actions for the current role to filter them out
-    const assignedSubActionIds = currentRoleId
-      ? getAssignedSubActionsForRoleModuleAction(currentRoleId, selectedModules[0], selectedAction)
-      : new Set<number>();
+  //   // Get assigned sub-actions for the current role to filter them out
+  //   const assignedSubActionIds = currentRoleId
+  //     ? getAssignedSubActionsForRoleModuleAction(currentRoleId, selectedModules[0], selectedAction)
+  //     : new Set<number>();
 
-    // Collect all sub-actions for the selected modules and action
-    superAdminRoleMappings.forEach((mapping) => {
-      if (
-        selectedModules.includes(mapping.module_name) &&
-        selectedAction === mapping.action_name
-      ) {
-        mapping.sub_actions.forEach((subAction) => {
-          const uniqueKey = `${subAction.sub_action_name}`;
-          // Only include unassigned sub-actions
-          if (!seen.has(uniqueKey) && !assignedSubActionIds.has(subAction.sub_action_id)) {
-            seen.add(uniqueKey);
-            subActions.push({
-              id: subAction.sub_action_name,
-              label: `${subAction.sub_action_name} (${mapping.action_name})`,
-              sub_action_id: subAction.sub_action_id,
-              parent_action: mapping.action_name,
-            });
-          }
-        });
-      }
-    });
+  //   // Collect all sub-actions for the selected modules and action
+  //   superAdminRoleMappings.forEach((mapping) => {
+  //     if (
+  //       selectedModules.includes(mapping.module_name) &&
+  //       selectedAction === mapping.action_name
+  //     ) {
+  //       mapping.sub_actions.forEach((subAction) => {
+  //         const uniqueKey = `${subAction.sub_action_name}`;
+  //         // Only include unassigned sub-actions
+  //         if (!seen.has(uniqueKey) && !assignedSubActionIds.has(subAction.sub_action_id)) {
+  //           seen.add(uniqueKey);
+  //           subActions.push({
+  //             id: subAction.sub_action_name,
+  //             label: `${subAction.sub_action_name} (${mapping.action_name})`,
+  //             sub_action_id: subAction.sub_action_id,
+  //             parent_action: mapping.action_name,
+  //           });
+  //         }
+  //       });
+  //     }
+  //   });
  
-    // Also get from grouped module actions
-    groupedModuleActions.forEach((module) => {
-      if (selectedModules.includes(module.module_name)) {
-        module.actions.forEach((action) => {
-          if (selectedAction === action.action_name) {
-            action.sub_actions.forEach((subAction) => {
-              const uniqueKey = `${subAction.sub_action_name}`;
-              // Only include unassigned sub-actions
-              if (!seen.has(uniqueKey) && !assignedSubActionIds.has(subAction.sub_action_id)) {
-                seen.add(uniqueKey);
-                subActions.push({
-                  id: subAction.sub_action_name,
-                  label: `${subAction.sub_action_name} (${action.action_name})`,
-                  sub_action_id: subAction.sub_action_id,
-                  parent_action: action.action_name,
-                });
-              }
-            });
-          }
-        });
-      }
-    });
+  //   // Also get from grouped module actions
+  //   groupedModuleActions.forEach((module) => {
+  //     if (selectedModules.includes(module.module_name)) {
+  //       module.actions.forEach((action) => {
+  //         if (selectedAction === action.action_name) {
+  //           action.sub_actions.forEach((subAction) => {
+  //             const uniqueKey = `${subAction.sub_action_name}`;
+  //             // Only include unassigned sub-actions
+  //             if (!seen.has(uniqueKey) && !assignedSubActionIds.has(subAction.sub_action_id)) {
+  //               seen.add(uniqueKey);
+  //               subActions.push({
+  //                 id: subAction.sub_action_name,
+  //                 label: `${subAction.sub_action_name} (${action.action_name})`,
+  //                 sub_action_id: subAction.sub_action_id,
+  //                 parent_action: action.action_name,
+  //               });
+  //             }
+  //           });
+  //         }
+  //       });
+  //     }
+  //   });
  
-    return subActions.sort((a, b) => a.label.localeCompare(b.label));
-  }, [superAdminRoleMappings, groupedModuleActions, getAssignedSubActionsForRoleModuleAction]);
+  //   return subActions.sort((a, b) => a.label.localeCompare(b.label));
+  // }, [superAdminRoleMappings, groupedModuleActions, getAssignedSubActionsForRoleModuleAction]);
+
+const getSubActionOptionsForModulesAndActions = useCallback((
+  selectedModules: string[],
+  selectedActions: string[], // Changed from string to string[]
+  currentRoleId?: number
+) => {
+  if (!selectedModules || selectedModules.length === 0 || !selectedActions || selectedActions.length === 0)
+    return [];
+ 
+  const subActions: {
+    id: string;
+    label: string;
+    sub_action_id: number;
+    parent_action: string;
+  }[] = [];
+  const seen = new Set<string>();
+ 
+  // Get assigned sub-actions for the current role to filter them out
+  const assignedSubActionIds = currentRoleId
+    ? new Set<number>() // We'll populate this below
+    : new Set<number>();
+
+  if (currentRoleId) {
+    selectedActions.forEach(action => {
+      const assigned = getAssignedSubActionsForRoleModuleAction(
+        currentRoleId, 
+        selectedModules[0], 
+        action
+      );
+      assigned.forEach(id => assignedSubActionIds.add(id));
+    });
+  }
+
+  // Collect all sub-actions for the selected modules and actions
+  superAdminRoleMappings.forEach((mapping) => {
+    if (
+      selectedModules.includes(mapping.module_name) &&
+      selectedActions.includes(mapping.action_name) // Check if action is in selected
+    ) {
+      mapping.sub_actions.forEach((subAction) => {
+        const uniqueKey = `${subAction.sub_action_name}`;
+        if (!seen.has(uniqueKey) && !assignedSubActionIds.has(subAction.sub_action_id)) {
+          seen.add(uniqueKey);
+          subActions.push({
+            id: subAction.sub_action_name,
+            label: `${subAction.sub_action_name} (${mapping.action_name})`,
+            sub_action_id: subAction.sub_action_id,
+            parent_action: mapping.action_name,
+          });
+        }
+      });
+    }
+  });
+ 
+  // Also get from grouped module actions
+  groupedModuleActions.forEach((module) => {
+    if (selectedModules.includes(module.module_name)) {
+      module.actions.forEach((action) => {
+        if (selectedActions.includes(action.action_name)) {
+          action.sub_actions.forEach((subAction) => {
+            const uniqueKey = `${subAction.sub_action_name}`;
+            if (!seen.has(uniqueKey) && !assignedSubActionIds.has(subAction.sub_action_id)) {
+              seen.add(uniqueKey);
+              subActions.push({
+                id: subAction.sub_action_name,
+                label: `${subAction.sub_action_name} (${action.action_name})`,
+                sub_action_id: subAction.sub_action_id,
+                parent_action: action.action_name,
+              });
+            }
+          });
+        }
+      });
+    }
+  });
+ 
+  return subActions.sort((a, b) => a.label.localeCompare(b.label));
+}, [superAdminRoleMappings, groupedModuleActions, getAssignedSubActionsForRoleModuleAction]);
+
 
   // Updated role mapping creation with the new API structure
+  // const handleCreateSuperAdminRoleMapping = useCallback(async (
+  //   superAdminRoleId: number,
+  //   selectedModules: string[],
+  //   selectedActions: string,
+  //   selectedSubActions: string[]
+  // ) => {
+  //   if (
+  //     !superAdminRoleId ||
+  //     selectedModules.length === 0 ||
+  //     !selectedActions
+  //   ) {
+  //     setMessage("Please select super admin role, modules, and actions");
+  //     return false;
+  //   }
+
+  //   try {
+  //     setIsLoading(true);
+  //     const moduleIds = moduleOptions
+  //       .filter((module) => selectedModules.includes(module.id))
+  //       .map((module) => module.module_id);
+
+  //     const actionId = getActionOptionsForModules(selectedModules).find(
+  //       (action) => action.id === selectedActions
+  //     )?.action_id;
+
+  //     if (!actionId) {
+  //       setMessage("Invalid action selected");
+  //       return false;
+  //     }
+
+  //     const subActionIds: number[] = [];
+  //     if (selectedSubActions.length > 0) {
+  //       const availableSubActions = getSubActionOptionsForModulesAndActions(
+  //         selectedModules,
+  //         selectedActions,
+  //         superAdminRoleId
+  //       );
+  //       selectedSubActions.forEach((subActionName) => {
+  //         const subAction = availableSubActions.find(
+  //           (sa) => sa.id === subActionName
+  //         );
+  //         if (subAction) {
+  //           subActionIds.push(subAction.sub_action_id);
+  //         }
+  //       });
+  //     }
+
+  //     const mappings = moduleIds.map((moduleId) => ({
+  //       module_id: moduleId,
+  //       action_id: actionId,
+  //       sub_action_ids: subActionIds,
+  //     }));
+
+  //     const payload: SuperAdminRoleMappingPayload = {
+  //       superadmin_role_id: superAdminRoleId,
+  //       mappings: mappings,
+  //     };
+
+  //     await axios.post("/api/v1/super-admin-role-mappings", payload, {
+  //       headers: {
+  //         ...getAuthHeaders(),
+  //         "Content-Type": "application/json",
+  //       },
+  //     });
+
+  //     const superAdminRoleName =
+  //       superAdminRoles.find((r) => r.role_id === superAdminRoleId)
+  //         ?.role_name || superAdminRoleId.toString();
+
+  //     setMessage(
+  //       `Successfully created super admin role mapping for: ${superAdminRoleName}`
+  //     );
+
+  //     await fetchSuperAdminRoleMappings();
+
+  //     return true;
+  //   } catch (error: any) {
+  //     console.error("Failed to create super admin role mapping:", error);
+  //     const errorMessage = error?.response?.data?.detail ||
+  //                         error?.response?.data?.message ||
+  //                         error?.message ||
+  //                         "Unknown error";                          
+  //     setMessage(`Failed to create super admin role mapping: ${errorMessage}`);
+  //     return false;
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }, [
+  //   moduleOptions,
+  //   getActionOptionsForModules,
+  //   getSubActionOptionsForModulesAndActions,
+  //   getAuthHeaders,
+  //   superAdminRoles,
+  //   fetchSuperAdminRoleMappings
+  // ]);
+
   const handleCreateSuperAdminRoleMapping = useCallback(async (
-    superAdminRoleId: number,
-    selectedModules: string[],
-    selectedActions: string,
-    selectedSubActions: string[]
-  ) => {
-    if (
-      !superAdminRoleId ||
-      selectedModules.length === 0 ||
-      !selectedActions
-    ) {
-      setMessage("Please select super admin role, modules, and actions");
-      return false;
-    }
+  superAdminRoleId: number,
+  selectedModules: string[],
+  selectedActions: string[], // Changed from string to string[]
+  selectedSubActions: string[]
+) => {
+  if (
+    !superAdminRoleId ||
+    selectedModules.length === 0 ||
+    selectedActions.length === 0
+  ) {
+    setMessage("Please select super admin role, modules, and at least one action");
+    return false;
+  }
 
-    try {
-      setIsLoading(true);
-      const moduleIds = moduleOptions
-        .filter((module) => selectedModules.includes(module.id))
-        .map((module) => module.module_id);
+  try {
+    setIsLoading(true);
+    const moduleIds = moduleOptions
+      .filter((module) => selectedModules.includes(module.id))
+      .map((module) => module.module_id);
 
-      const actionId = getActionOptionsForModules(selectedModules).find(
-        (action) => action.id === selectedActions
-      )?.action_id;
-
-      if (!actionId) {
-        setMessage("Invalid action selected");
-        return false;
-      }
+    // Create mappings for each selected action
+    const mappings = selectedActions.flatMap(actionName => {
+      const action = getActionOptionsForModules(selectedModules).find(
+        a => a.id === actionName
+      );
+      
+      if (!action) return [];
 
       const subActionIds: number[] = [];
       if (selectedSubActions.length > 0) {
         const availableSubActions = getSubActionOptionsForModulesAndActions(
           selectedModules,
-          selectedActions,
+          [actionName], // Pass as array with single action
           superAdminRoleId
         );
         selectedSubActions.forEach((subActionName) => {
           const subAction = availableSubActions.find(
-            (sa) => sa.id === subActionName
+            (sa) => sa.id === subActionName && sa.parent_action === actionName
           );
           if (subAction) {
             subActionIds.push(subAction.sub_action_id);
@@ -649,98 +823,195 @@ console.log(data , "fetchSuperAdminRoleMappings");
         });
       }
 
-      const mappings = moduleIds.map((moduleId) => ({
+      return moduleIds.map(moduleId => ({
         module_id: moduleId,
-        action_id: actionId,
+        action_id: action.action_id,
         sub_action_ids: subActionIds,
       }));
+    });
 
-      const payload: SuperAdminRoleMappingPayload = {
-        superadmin_role_id: superAdminRoleId,
-        mappings: mappings,
-      };
+    const payload: SuperAdminRoleMappingPayload = {
+      superadmin_role_id: superAdminRoleId,
+      mappings: mappings,
+    };
 
-      await axios.post("/api/v1/super-admin-role-mappings", payload, {
-        headers: {
-          ...getAuthHeaders(),
-          "Content-Type": "application/json",
-        },
-      });
+    await axios.post("/api/v1/super-admin-role-mappings", payload, {
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+    });
 
-      const superAdminRoleName =
-        superAdminRoles.find((r) => r.role_id === superAdminRoleId)
-          ?.role_name || superAdminRoleId.toString();
+    const superAdminRoleName =
+      superAdminRoles.find((r) => r.role_id === superAdminRoleId)
+        ?.role_name || superAdminRoleId.toString();
 
-      setMessage(
-        `Successfully created super admin role mapping for: ${superAdminRoleName}`
-      );
+    setMessage(
+      `Successfully created super admin role mapping for: ${superAdminRoleName}`
+    );
 
-      await fetchSuperAdminRoleMappings();
+    await fetchSuperAdminRoleMappings();
 
-      return true;
-    } catch (error: any) {
-      console.error("Failed to create super admin role mapping:", error);
-      const errorMessage = error?.response?.data?.detail ||
-                          error?.response?.data?.message ||
-                          error?.message ||
-                          "Unknown error";                          
-      setMessage(`Failed to create super admin role mapping: ${errorMessage}`);
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [
-    moduleOptions,
-    getActionOptionsForModules,
-    getSubActionOptionsForModulesAndActions,
-    getAuthHeaders,
-    superAdminRoles,
-    fetchSuperAdminRoleMappings
-  ]);
+    return true;
+  } catch (error: any) {
+    console.error("Failed to create super admin role mapping:", error);
+    const errorMessage = error?.response?.data?.detail ||
+                        error?.response?.data?.message ||
+                        error?.message ||
+                        "Unknown error";                          
+    setMessage(`Failed to create super admin role mapping: ${errorMessage}`);
+    return false;
+  } finally {
+    setIsLoading(false);
+  }
+}, [
+  moduleOptions,
+  getActionOptionsForModules,
+  getSubActionOptionsForModulesAndActions,
+  getAuthHeaders,
+  superAdminRoles,
+  fetchSuperAdminRoleMappings
+]);
 
   // Update role mapping function
-  const handleUpdateSuperAdminRoleMapping = useCallback(async (
-    mappingId: number,
-    superAdminRoleId: number,
-    selectedModules: string[],
-    selectedActions: string,
-    selectedSubActions: string[]
-  ) => {
-    if (
-      !mappingId ||
-      !superAdminRoleId ||
-      selectedModules.length === 0 ||
-      !selectedActions
-    ) {
-      setMessage("Please select modules and actions");
-      return false;
-    }
+  // const handleUpdateSuperAdminRoleMapping = useCallback(async (
+  //   mappingId: number,
+  //   superAdminRoleId: number,
+  //   selectedModules: string[],
+  //   selectedActions: string,
+  //   selectedSubActions: string[]
+  // ) => {
+  //   if (
+  //     !mappingId ||
+  //     !superAdminRoleId ||
+  //     selectedModules.length === 0 ||
+  //     !selectedActions
+  //   ) {
+  //     setMessage("Please select modules and actions");
+  //     return false;
+  //   }
 
-    try {
-      setIsLoading(true);
-      const moduleIds = moduleOptions
-        .filter((module) => selectedModules.includes(module.id))
-        .map((module) => module.module_id);
+  //   try {
+  //     setIsLoading(true);
+  //     const moduleIds = moduleOptions
+  //       .filter((module) => selectedModules.includes(module.id))
+  //       .map((module) => module.module_id);
 
-      const actionId = getActionOptionsForModules(selectedModules).find(
-        (action) => action.id === selectedActions
-      )?.action_id;
+  //     const actionId = getActionOptionsForModules(selectedModules).find(
+  //       (action) => action.id === selectedActions
+  //     )?.action_id;
 
-      if (!actionId) {
-        setMessage("Invalid action selected");
-        return false;
-      }
+  //     if (!actionId) {
+  //       setMessage("Invalid action selected");
+  //       return false;
+  //     }
+
+  //     const subActionIds: number[] = [];
+  //     if (selectedSubActions.length > 0) {
+  //       const availableSubActions = getSubActionOptionsForModulesAndActions(
+  //         selectedModules,
+  //         selectedActions,
+  //         superAdminRoleId
+  //       );
+  //       selectedSubActions.forEach((subActionName) => {
+  //         const subAction = availableSubActions.find(
+  //           (sa) => sa.id === subActionName
+  //         );
+  //         if (subAction) {
+  //           subActionIds.push(subAction.sub_action_id);
+  //         }
+  //       });
+  //     }
+
+  //     const mappings = moduleIds.map((moduleId) => ({
+  //       module_id: moduleId,
+  //       action_id: actionId,
+  //       sub_action_ids: subActionIds,
+  //     }));
+
+  //     const payload: SuperAdminRoleMappingPayload = {
+  //       superadmin_role_id: superAdminRoleId,
+  //       mappings: mappings,
+  //     };
+
+  //     await axios.put(`/api/v1/super-admin-role-mappings?super_admin_role_mappings_id=${mappingId}`, payload, {
+  //       headers: {
+  //         ...getAuthHeaders(),
+  //         "Content-Type": "application/json",
+  //       },
+  //     });
+
+  //     const superAdminRoleName =
+  //       superAdminRoles.find((r) => r.role_id === superAdminRoleId)
+  //         ?.role_name || superAdminRoleId.toString();
+
+  //     setMessage(
+  //       `Successfully updated super admin role mapping for: ${superAdminRoleName}`
+  //     );
+
+  //     await fetchSuperAdminRoleMappings();
+
+  //     return true;
+  //   } catch (error: any) {
+  //     console.error("Failed to update super admin role mapping:", error);
+  //     const errorMessage = error?.response?.data?.detail ||
+  //                         error?.response?.data?.message ||
+  //                         error?.message ||
+  //                         "Unknown error";                          
+  //     setMessage(`Failed to update super admin role mapping: ${errorMessage}`);
+  //     return false;
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // }, [
+  //   moduleOptions,
+  //   getActionOptionsForModules,
+  //   getSubActionOptionsForModulesAndActions,
+  //   getAuthHeaders,
+  //   superAdminRoles,
+  //   fetchSuperAdminRoleMappings
+  // ]);
+const handleUpdateSuperAdminRoleMapping = useCallback(async (
+  mappingId: number,
+  superAdminRoleId: number,
+  selectedModules: string[],
+  selectedActions: string[], // Changed from string to string[]
+  selectedSubActions: string[]
+) => {
+  if (
+    !mappingId ||
+    !superAdminRoleId ||
+    selectedModules.length === 0 ||
+    selectedActions.length === 0
+  ) {
+    setMessage("Please select modules and at least one action");
+    return false;
+  }
+
+  try {
+    setIsLoading(true);
+    const moduleIds = moduleOptions
+      .filter((module) => selectedModules.includes(module.id))
+      .map((module) => module.module_id);
+
+    // Create mappings for each selected action
+    const mappings = selectedActions.flatMap(actionName => {
+      const action = getActionOptionsForModules(selectedModules).find(
+        a => a.id === actionName
+      );
+      
+      if (!action) return [];
 
       const subActionIds: number[] = [];
       if (selectedSubActions.length > 0) {
         const availableSubActions = getSubActionOptionsForModulesAndActions(
           selectedModules,
-          selectedActions,
+          [actionName], // Pass as array with single action
           superAdminRoleId
         );
         selectedSubActions.forEach((subActionName) => {
           const subAction = availableSubActions.find(
-            (sa) => sa.id === subActionName
+            (sa) => sa.id === subActionName && sa.parent_action === actionName
           );
           if (subAction) {
             subActionIds.push(subAction.sub_action_id);
@@ -748,55 +1019,55 @@ console.log(data , "fetchSuperAdminRoleMappings");
         });
       }
 
-      const mappings = moduleIds.map((moduleId) => ({
+      return moduleIds.map(moduleId => ({
         module_id: moduleId,
-        action_id: actionId,
+        action_id: action.action_id,
         sub_action_ids: subActionIds,
       }));
+    });
 
-      const payload: SuperAdminRoleMappingPayload = {
-        superadmin_role_id: superAdminRoleId,
-        mappings: mappings,
-      };
+    const payload: SuperAdminRoleMappingPayload = {
+      superadmin_role_id: superAdminRoleId,
+      mappings: mappings,
+    };
 
-      await axios.put(`/api/v1/super-admin-role-mappings?super_admin_role_mappings_id=${mappingId}`, payload, {
-        headers: {
-          ...getAuthHeaders(),
-          "Content-Type": "application/json",
-        },
-      });
+    await axios.put(`/api/v1/super-admin-role-mappings?super_admin_role_mappings_id=${mappingId}`, payload, {
+      headers: {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+      },
+    });
 
-      const superAdminRoleName =
-        superAdminRoles.find((r) => r.role_id === superAdminRoleId)
-          ?.role_name || superAdminRoleId.toString();
+    const superAdminRoleName =
+      superAdminRoles.find((r) => r.role_id === superAdminRoleId)
+        ?.role_name || superAdminRoleId.toString();
 
-      setMessage(
-        `Successfully updated super admin role mapping for: ${superAdminRoleName}`
-      );
+    setMessage(
+      `Successfully updated super admin role mapping for: ${superAdminRoleName}`
+    );
 
-      await fetchSuperAdminRoleMappings();
+    await fetchSuperAdminRoleMappings();
 
-      return true;
-    } catch (error: any) {
-      console.error("Failed to update super admin role mapping:", error);
-      const errorMessage = error?.response?.data?.detail ||
-                          error?.response?.data?.message ||
-                          error?.message ||
-                          "Unknown error";                          
-      setMessage(`Failed to update super admin role mapping: ${errorMessage}`);
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [
-    moduleOptions,
-    getActionOptionsForModules,
-    getSubActionOptionsForModulesAndActions,
-    getAuthHeaders,
-    superAdminRoles,
-    fetchSuperAdminRoleMappings
-  ]);
-
+    return true;
+  } catch (error: any) {
+    console.error("Failed to update super admin role mapping:", error);
+    const errorMessage = error?.response?.data?.detail ||
+                        error?.response?.data?.message ||
+                        error?.message ||
+                        "Unknown error";                          
+    setMessage(`Failed to update super admin role mapping: ${errorMessage}`);
+    return false;
+  } finally {
+    setIsLoading(false);
+  }
+}, [
+  moduleOptions,
+  getActionOptionsForModules,
+  getSubActionOptionsForModulesAndActions,
+  getAuthHeaders,
+  superAdminRoles,
+  fetchSuperAdminRoleMappings
+]);
   const handleCreateRole = useCallback(
     async (roleData: { role_name: string; description: string; status: string }) => {
       if (!roleData.role_name.trim()) {
